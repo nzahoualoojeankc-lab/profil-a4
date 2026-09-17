@@ -1,0 +1,3919 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профили A4 - Полная платформа</title>
+    <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="images/icon-192.png">
+  <meta name="theme-color" content="#159b63">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Chèques">
+  <link rel="stylesheet" href="css/app.css">
+
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f4f6f9;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* ===== RESEAU GLOBAL ===== */
+    .page-wrapper {
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .content-wrapper {
+      display: flex;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* ===== BARRE DU HAUT EN BLEU ET ADAPTÉE MOBILE ===== */
+    .top-header {
+      background: white;
+      border-bottom: 3px solid #2980b9;
+      padding: 10px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      z-index: 1000;
+      position: sticky;
+      top: 0;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .top-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+      }
+    }
+
+    .top-header-left {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 15px;
+    }
+
+    @media (min-width: 768px) {
+      .top-header-left {
+        width: auto;
+        justify-content: flex-start;
+      }
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2980b9;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 5px;
+      list-style: none;
+    }
+
+    .nav-tabs button {
+      background: none;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+      font-size: 13px;
+    }
+
+    .nav-tabs button:hover,
+    .nav-tabs button.active {
+      color: #2980b9;
+      border-bottom-color: #2980b9;
+    }
+
+    .top-header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border-top: 1px solid #eee;
+      padding-top: 8px;
+    }
+
+    @media (min-width: 768px) {
+      .top-header-right {
+        width: auto;
+        border-top: none;
+        padding-top: 0;
+        justify-content: flex-end;
+      }
+    }
+
+    .language-selector {
+      display: flex;
+      gap: 4px;
+      padding: 3px;
+      background: #f0f0f0;
+      border-radius: 6px;
+    }
+
+    .language-selector button {
+      padding: 4px 8px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 11px;
+      transition: all 0.3s;
+    }
+
+    .language-selector button.active {
+      background: #2980b9;
+      color: white;
+      border-color: #2980b9;
+    }
+
+    .language-selector button:hover {
+      border-color: #2980b9;
+    }
+
+    .admin-settings-btn {
+      width: 32px;
+      height: 32px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .admin-settings-btn:hover {
+      background: #c0392b;
+      transform: rotate(90deg);
+    }
+
+    .user-badge {
+      padding: 5px 10px;
+      background: #e1f5fe;
+      border-radius: 20px;
+      font-weight: bold;
+      color: #2980b9;
+      font-size: 12px;
+    }
+
+    .user-badge.admin {
+      background: #ffebee;
+      color: #e74c3c;
+    }
+
+    /* ===== BANNER HERO SOUPELE ET COMPACTE ===== */
+    .landing-page {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .hero h1 {
+      font-size: 26px;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .hero p {
+      font-size: 15px;
+      margin-bottom: 25px;
+      opacity: 0.95;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #2980b9;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+
+    .btn-secondary:hover {
+      background: white;
+      color: #2980b9;
+    }
+
+    @media (min-width: 768px) {
+      .hero {
+        padding: 80px 40px;
+      }
+      .hero h1 {
+        font-size: 42px;
+      }
+      .hero p {
+        font-size: 18px;
+      }
+    }
+
+    /* ===== SECTIONS DE CONTENU ===== */
+    .features-section {
+      padding: 40px 15px;
+      background: #f8f9fa;
+      width: 100%;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(41, 128, 185, 0.15);
+    }
+
+    .feature-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #2980b9;
+    }
+
+    /* ===== FIN DE LA PARTIE 1 ===== */
+    /* ===== ENTRÉE DE LA CONFIGURATION DES PRIX ===== */
+    .pricing-section {
+      padding: 40px 15px;
+      background: white;
+      width: 100%;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .pricing-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 30px 20px;
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .pricing-card.popular {
+      border-color: #2980b9;
+      box-shadow: 0 10px 30px rgba(41, 128, 185, 0.1);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2980b9;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .pricing-card h3 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .price {
+      font-size: 36px;
+      color: #2980b9;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .features-list {
+      text-align: left;
+      margin: 20px 0;
+      list-style: none;
+    }
+
+    .features-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #edf2f7;
+      color: #4a5568;
+      font-size: 13px;
+    }
+
+    .features-list li:before {
+      content: "✓ ";
+      color: #2980b9;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .pricing-button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 15px;
+      background: #2980b9;
+      color: white;
+      transition: all 0.3s;
+    }
+
+    .pricing-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(41, 128, 185, 0.2);
+    }
+
+    /* ===== ZONE APPLICATION & BANDEAU DE CONNEXION ===== */
+    .app-page {
+      display: none;
+      width: 100%;
+      flex: 1;
+    }
+
+    .app-page.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-container {
+      display: flex;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* ===== FENÊTRE DE CONNEXION ===== */
+    .login-screen {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-screen.hidden {
+      display: none;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 16px;
+      padding: 30px 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .login-header h1 {
+      font-size: 26px;
+      color: #2980b9;
+      margin-bottom: 5px;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .login-form.hidden {
+      display: none;
+    }
+.form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .form-group input {
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #2980b9; /* Converti en Bleu */
+    }
+
+    .login-button {
+      padding: 14px;
+      background: #2980b9; /* Converti en Bleu */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .login-button:hover {
+      background: #1f618d; /* Converti en Bleu Foncé */
+    }
+
+    .login-error {
+      color: #d72626;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .login-error.show {
+      display: block;
+    }
+
+    .login-divider {
+      text-align: center;
+      color: #999;
+      margin: 20px 0;
+    }
+
+    .register-link {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .register-link a {
+      color: #2980b9; /* Converti en Bleu */
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    /* ===== BARRE LATÉRALE - ADAPTATION MOBILE FLUIDE ===== */
+    .sidebar {
+      width: 100%; /* Largeur totale sur mobile pour éviter le décalage */
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+
+    @media (min-width: 768px) {
+      .sidebar {
+        width: 350px; /* Reprend sa taille fixe uniquement sur ordinateur */
+      }
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      background: #1a252f;
+      border-bottom: 2px solid #2980b9; /* Converti en Bleu */
+    }
+
+    .sidebar-header h1 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .user-info {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+      background: #34495e;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .storage-info {
+      background: #34495e;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 11px;
+    }
+
+    .storage-bar {
+      width: 100%;
+      height: 8px;
+      background: #2c3e50;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .storage-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2980b9, #f39c12); /* Converti en Bleu vers Orange */
+      width: 35%;
+      transition: width 0.3s;
+    }
+
+    .storage-fill.warning {
+      background: linear-gradient(90deg, #f39c12, #d72626);
+    }
+
+    .profile-capacity {
+      padding: 10px;
+      background: #2c3e50;
+      border-radius: 6px;
+      margin-top: 8px;
+      border-left: 3px solid #2980b9; /* Converti en Bleu */
+    }
+
+    .profile-capacity h3 {
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #2980b9; /* Converti en Bleu */
+    }
+
+    .capacity-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 4px 0;
+      border-bottom: 1px solid #445;
+    }
+
+    .capacity-value {
+      font-weight: bold;
+      color: #ffc107;
+    }
+
+    .capacity-value.good {
+      color: #2980b9; /* Converti en Bleu */
+    }
+
+    .capacity-value.warning {
+      color: #f39c12;
+    }
+
+    .capacity-value.danger {
+      color: #d72626;
+    }
+
+    .search-box {
+      padding: 15px;
+      border-bottom: 1px solid #445;
+      display: none;
+    }
+
+    .search-box.show {
+      display: block;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #34495e;
+      color: white;
+      font-size: 14px;
+    }
+
+    .profiles-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .profiles-list.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .profile-item {
+      padding: 12px;
+      margin: 8px 0;
+      background: #34495e;
+      border-radius: 8px;
+      cursor: pointer;
+      border-left: 4px solid transparent;
+      transition: all 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .profile-item:hover {
+      background: #3d5268;
+    }
+
+    .profile-item.active {
+      background: #2980b9; /* Converti en Bleu */
+      border-left-color: #fff;
+    }
+
+    .profile-item-content {
+      flex: 1;
+    }
+
+    .profile-item-name {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .profile-item-date {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .sidebar-footer {
+      padding: 15px;
+      border-top: 1px solid #445;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-new, .btn-delete, .btn-export, .btn-share, .btn-logout, .btn-reset, .btn-batch-export {
+      flex: 1;
+      min-width: 90px; /* Ajusté légèrement pour que ça passe sur mobile */
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-size: 12px;
+    }
+
+    .btn-new {
+      background: #2980b9; /* Converti en Bleu */
+      color: white;
+    }
+
+    .btn-new:hover {
+      background: #1f618d;
+    }
+
+    .btn-export {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-export:hover {
+      background: #2980b9;
+    }
+
+    .btn-share {
+      background: #9b59b6;
+      color: white;
+    }
+
+    .btn-share:hover {
+      background: #8e44ad;
+    }
+
+    .btn-delete {
+      background: #d72626;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #b30000;
+    }
+
+    .btn-reset {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-reset:hover {
+      background: #c0392b;
+    }
+
+    .btn-logout {
+      background: #e67e22;
+      color: white;
+    }
+
+    .btn-logout:hover {
+      background: #d35400;
+    }
+
+    .btn-batch-export {
+      background: #27ae60; /* Conservé en vert pour l'export de lot (standard) */
+      color: white;
+    }
+
+    .btn-batch-export:hover {
+      background: #229954;
+    }
+
+    /* ===== CONTENU PRINCIPAL SOUPOLE ===== */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #dfe3ea;
+      width: 100%;
+    }
+
+    .controls {
+      padding: 15px;
+      background: white;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      overflow-y: auto;
+      max-height: 300px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border-left: 3px solid #2980b9; /* Converti en Bleu */
+    }
+
+    .control-group label {
+      font-weight: 600;
+      color: #333;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .controls input,
+    .controls button,
+    .controls select {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+      height: auto;
+    }
+
+    .controls select {
+      cursor: pointer;
+      background: white;
+      color: #333;
+    }
+.controls button {
+      background: #111;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      padding: 10px;
+    }
+
+    .controls button:hover {
+      background: #333;
+    }
+
+    .controls button.print-btn {
+      background: #2980b9; /* Converti en Bleu */
+      padding: 10px;
+    }
+
+    .controls button.print-btn:hover {
+      background: #1f618d; /* Converti en Bleu Foncé */
+    }
+
+    .size-slider {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+    }
+
+    .size-display {
+      background: #e1f5fe; /* Converti en Bleu Très Clair */
+      padding: 6px 10px;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: bold;
+      color: #2980b9; /* Converti en Bleu */
+      font-size: 12px;
+    }
+
+    .document-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px; /* Réduit pour mobile */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: #dfe3ea;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .document-area {
+        padding: 25px;
+      }
+    }
+
+    .a4-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto; /* Permet le défilement horizontal de l'A4 sur petit écran */
+    }
+
+    .a4 {
+      width: 210mm;
+      min-height: 297mm;
+      background: #ffffff;
+      padding: 15mm;
+      box-sizing: border-box;
+      transform-origin: top center;
+      text-rendering: geometricPrecision;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      box-shadow: 0 0 30px rgba(0,0,0,0.15);
+      font-render: optimizeLegibility;
+    }
+
+    .a4 {
+      text-rendering: geometricPrecision;
+      -webkit-font-smoothing: antialiased;
+    }
+     
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 26px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .person-info {
+      flex: 1;
+    }
+
+    .person-photo {
+      width: 112px;
+      height: 112px;
+      border: 5px solid #b40000;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      image-rendering: -webkit-optimize-contrast;
+      background: #f0f0f0;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .person-photo:hover {
+      filter: brightness(0.9);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      transform: scale(1.02);
+    }
+
+    [contenteditable="true"] {
+      outline: none;
+      cursor: text;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    [contenteditable="true"]:focus {
+      background: #ffe680;
+      outline: 2px solid #f39c12;
+    }
+
+    .name {
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .phone {
+      margin-bottom: 8px;
+    }
+
+    .person-details {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+
+    .date {
+      font-weight: 800;
+      margin-bottom: 28px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin: 16px 0;
+    }
+
+    .green { color: #2980b9; } /* Converti en Bleu */
+    .red { color: #d72626; }
+
+    .total-box {
+      margin-top: 26px;
+      background: #eef4fb;
+      border-radius: 8px;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total-label {
+      font-size: 27px;
+    }
+
+    .total-price {
+      font-weight: 800;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      color: #999;
+    }
+
+    .empty-state-content {
+      text-align: center;
+      padding: 40px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 500px;
+    }
+
+    .empty-state-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .empty-state .create-btn {
+      display: inline-block;
+      padding: 14px 40px;
+      background: #2980b9; /* Converti en Bleu */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 20px;
+      transition: background 0.3s;
+    }
+
+    .empty-state .create-btn:hover {
+      background: #1f618d; /* Converti en Bleu Foncé */
+    }
+
+    /* ===== PANREAU PARAMÈTRES ADMINDSTRATEUR ADAPTÉ MOBILE ===== */
+    .admin-settings-panel {
+      position: fixed;
+      top: 60px;
+      right: 0;
+      width: 100%; /* Largeur totale par défaut pour les smartphones */
+      max-height: calc(100vh - 60px);
+      background: white;
+      border-left: 2px solid #2980b9; /* Converti en Bleu */
+      box-shadow: -4px 0 15px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-out;
+      z-index: 999;
+    }
+
+    @media (min-width: 768px) {
+      .admin-settings-panel {
+        width: 550px; /* Reprend sa taille sur ordinateur */
+      }
+    }
+
+    .admin-settings-header {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .admin-settings-header h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .close-settings {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* ONGLETS */
+    .admin-tabs {
+      display: flex;
+      gap: 0;
+      background: #f5f5f5;
+      border-bottom: 2px solid #ddd;
+      padding: 0 20px;
+      position: sticky;
+      top: 60px;
+      z-index: 9;
+    }
+
+    .admin-tab-btn {
+      flex: 1;
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .admin-tab-btn:hover,
+    .admin-tab-btn.active {
+      color: #2980b9; /* Converti en Bleu */
+      border-bottom-color: #2980b9;
+    }
+
+    .admin-tab-content {
+      display: none;
+      padding: 20px;
+    }
+
+    .admin-tab-content.show {
+      display: block;
+    }
+
+    .admin-settings-content {
+      padding: 0;
+    }
+
+    .settings-section {
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .settings-section h3 {
+      font-size: 14px;
+      color: #2980b9; /* Converti en Bleu */
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .settings-item {
+      margin-bottom: 15px;
+    }
+
+    .settings-item label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .settings-item input,
+    .settings-item textarea,
+    .settings-item select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .settings-item input:focus,
+    .settings-item textarea:focus,
+    .settings-item select:focus {
+      outline: none;
+      border-color: #2980b9; /* Converti en Bleu */
+      box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.1);
+    }
+
+    .settings-item button {
+      width: 100%;
+      padding: 12px;
+      background: #2980b9; /* Converti en Bleu */
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-size: 13px;
+    }
+
+    .settings-item button:hover {
+      background: #1f618d; /* Converti en Bleu Foncé */
+      transform: translateY(-2px);
+    }
+
+    .settings-item button.secondary {
+      background: #3498db;
+    }
+
+    .settings-item button.secondary:hover {
+      background: #2980b9;
+    }
+
+    .settings-item button.danger {
+      background: #e74c3c;
+    }
+
+    .settings-item button.danger:hover {
+      background: #c0392b;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-indicator.synced {
+      background: #51cf66;
+    }
+
+    .status-indicator.syncing {
+      background: #ffc107;
+      animation: pulse 0.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+.info-box {
+      background: #e1f5fe; /* Converti en Bleu Très Clair */
+      border-left: 4px solid #2980b9; /* Converti en Bleu */
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    /* Предпросмотр фотографий по умолчанию */
+    .default-photos-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .photo-preview {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f0f0f0;
+      aspect-ratio: 1;
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-preview-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 4px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .photo-upload-input {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .color-control {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .color-control label {
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .color-control input[type="color"] {
+      width: 100%;
+      height: 45px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* ===== MODALE ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 700px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease-out;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h2 {
+      color: #2980b9; /* Converti en Bleu */
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
+
+    .modal-content p {
+      color: #333;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .modal-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .modal-btn.primary {
+      background: #2980b9; /* Converti en Bleu */
+      color: white;
+    }
+
+    .modal-btn.primary:hover {
+      background: #1f618d; /* Converti en Bleu Foncé */
+    }
+
+    .modal-btn.secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .modal-btn.danger {
+      background: #d72626;
+      color: white;
+    }
+
+    .share-link-box {
+      background: #f0f0f0;
+      border: 2px solid #2980b9; /* Converti en Bleu */
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .share-link-box input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .copy-button {
+      background: #2980b9; /* Converti en Bleu */
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      transition: background 0.3s;
+    }
+
+    .copy-button:hover {
+      background: #1f618d; /* Converti en Bleu Foncé */
+    }
+
+    /* MODALE DE SÉLECTION PAR LOTS */
+    .batch-selection-modal {
+      max-width: 700px;
+      max-height: 700px;
+    }
+
+    .batch-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .batch-item {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .batch-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .batch-item-info {
+      flex: 1;
+    }
+
+    .batch-item-name {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .batch-item-period {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .batch-controls {
+      margin: 15px 0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .batch-controls button {
+      padding: 10px 20px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      flex: 1;
+      transition: background 0.3s;
+    }
+
+    .batch-controls button:hover {
+      background: #2980b9;
+    }
+
+    .period-stats {
+      background: linear-gradient(135deg, #f0f0f0 0%, #f9f9f9 100%);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 13px;
+      border-left: 4px solid #2980b9; /* Converti en Bleu */
+    }
+
+    .period-stats p {
+      margin: 8px 0;
+      color: #333;
+    }
+
+    .period-stats strong {
+      color: #2980b9; /* Converti en Bleu */
+      font-weight: 700;
+    }
+
+    #periodBreakdown {
+      background: white;
+      border-radius: 6px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      margin: 5px 0;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    #periodBreakdown div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+    }
+/* ===== ПРОГРЕСС ПЕЧАТИ ===== */
+    .print-progress-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      z-index: 500;
+      text-align: center;
+      min-width: 350px;
+    }
+
+    .print-progress-overlay h2 {
+      color: #2980b9; /* Заменено на синий */
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .print-progress-bar {
+      background: #f0f0f0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 20px 0;
+      height: 20px;
+    }
+
+    .print-progress-fill {
+      background: linear-gradient(90deg, #2980b9, #3498db); /* Заменено на синий градиент */
+      height: 100%;
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .print-progress-text {
+      color: #333;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .print-profile-name {
+      color: #2980b9; /* Заменено на синий */
+      font-weight: bold;
+      font-size: 16px;
+      margin: 10px 0;
+      word-break: break-word;
+    }
+
+    /* ===== НИЖНИЙ КОЛОНТИТУЛ ===== */
+    .footer {
+      background: #1a1a1a;
+      color: white;
+      padding: 50px;
+      text-align: center;
+    }
+
+    .footer p {
+      color: #999;
+    }
+
+    /* ===== АНИМАЦИИ ===== */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* НАЛОЖЕНИЕ СОЧЕТАНИЙ КЛАВИШ */
+    .shortcuts-overlay {
+      position: fixed;
+      top: 60px;
+      right: 50px;
+      background: white;
+      border: 2px solid #2980b9; /* Заменено на синий */
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      max-width: 300px;
+      z-index: 1001;
+      display: none;
+    }
+
+    .shortcuts-overlay.show {
+      display: block;
+    }
+
+    .shortcuts-overlay h3 {
+      color: #2980b9; /* Заменено на синий */
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+
+    .shortcut-key {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: bold;
+      color: #2980b9; /* Заменено на siний */
+    }
+
+    /* ===== АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ ===== */
+    @media (max-width: 768px) {
+      .nav-tabs {
+        gap: 5px;
+      }
+
+      .nav-tabs button {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .admin-settings-panel {
+        width: 100%;
+      }
+
+      .sidebar {
+        width: 100%; /* Полная ширина на мобилках против деформаций */
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .language-selector {
+        gap: 4px;
+      }
+
+      .language-selector button {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+
+      .admin-tabs {
+        flex-wrap: wrap;
+      }
+
+      .shortcuts-overlay {
+        right: 10px;
+        max-width: 250px;
+      }
+
+      .modal-content {
+        max-width: 95%;
+        padding: 20px;
+      }
+
+      .print-progress-overlay {
+        min-width: 90%;
+        padding: 20px;
+      }
+    }
+
+    /* ===== ИДЕАЛЬНАЯ НАСТРОЙКА ПЕЧАТИ ===== */
+    @media print {
+      .top-header,
+      .sidebar,
+      .controls,
+      .admin-settings-btn,
+      .admin-settings-panel,
+      .language-selector,
+      .shortcuts-overlay,
+      .print-progress-overlay {
+        display: none !important;
+      }
+
+      /* Принудительное сохранение цвета при генерации PDF */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .a4-wrapper {
+        padding: 0 !important;
+        background: transparent !important;
+      }
+
+      .a4 {
+        box-shadow: none !important;
+        page-break-after: always;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        padding: 15mm !important;
+        margin: 0 !important;
+      }
+
+      .card {
+        background: white !important;
+        color: black !important;
+        break-inside: avoid;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .total-box {
+        background: #eef4fb !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .green {
+        color: #2980b9 !important; /* На печати зеленые маркеры станут синими */
+      }
+
+      .red {
+        color: #d72626 !important;
+      }
+
+      .person-photo {
+        border-color: #b40000 !important;
+      }
+
+      [contenteditable="true"]:focus {
+        background: transparent !important;
+        outline: none !important;
+      }
+    }
+  </style>
+
+<!-- PWA Support -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="images/icon-192.png">
+<meta name="theme-color" content="#159b63">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chèques">
+
+<!-- Script Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('✅ Service Worker enregistré'))
+      .catch(err => console.error('❌ Erreur SW:', err));
+  }
+</script>  
+</head>
+
+<body>
+
+  <!-- ВЕРХНИЙ ЗАГОЛОВОК -->
+  <div class="top-header">
+    <div class="top-header-left">
+      <div class="logo-text">📋 Профили A4</div>
+      <ul class="nav-tabs" id="navTabs">
+        <button class="nav-btn active" data-page="landing">Главная</button>
+        <button class="nav-btn" data-page="app">Приложение</button>
+      </ul>
+    </div>
+    <div class="top-header-right">
+      <div class="language-selector">
+        <button class="active" onclick="changeLanguage('ru')" title="Русский">РУ</button>
+        <button onclick="changeLanguage('en')" title="English">EN</button>
+        <button onclick="changeLanguage('fr')" title="Français">FR</button>
+      </div>
+      <div class="user-badge" id="userBadge">Посетитель</div>
+      <button class="admin-settings-btn" onclick="toggleAdminSettings()" title="Параметры администратора">⚙️</button>
+      <button class="admin-settings-btn" onclick="toggleShortcuts()" title="Сочетания клавиш" style="background: #3498db;">⌨️</button>
+    </div>
+  </div>
+
+  <!-- НАЛОЖЕНИЕ СОЧЕТАНИЙ КЛАВИШ -->
+  <div class="shortcuts-overlay" id="shortcutsOverlay">
+    <h3>⌨️ Сочетания клавиш</h3>
+    <div class="shortcut-item">
+      <span>Печать</span>
+      <span class="shortcut-key">Ctrl + P</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Сохранить</span>
+      <span class="shortcut-key">Ctrl + S</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Новый профиль</span>
+      <span class="shortcut-key">Ctrl + N</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Печать в цепочку</span>
+      <span class="shortcut-key">Ctrl + E</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Параметры администратора</span>
+      <span class="shortcut-key">Ctrl + O</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Показать сочетания</span>
+      <span class="shortcut-key">?</span>
+    </div>
+  </div>
+
+  <!-- ПАНЕЛЬ ПАРАМЕТРОВ АДМИНИСТРАТОРА -->
+  <div class="admin-settings-panel" id="adminSettingsPanel">
+    <div class="admin-settings-header">
+      <h2>⚙️ Параметры администратора</h2>
+      <button class="close-settings" onclick="toggleAdminSettings()">×</button>
+    </div>
+
+    <!-- ВКЛАДКИ -->
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" onclick="showAdminTab('photos')">📸 Фото</button>
+      <button class="admin-tab-btn" onclick="showAdminTab('colors')">🎨 Цвета</button>
+      <button class="admin-tab-btn" onclick="showAdminTab('fonts')">✏️ Шрифты</button>
+      <button class="admin-tab-btn" onclick="showAdminTab('settings')">🔧 Параметры</button>
+    </div>
+
+    <div class="admin-settings-content">
+      <!-- ВКЛАДКА 1: ФОТО -->
+      <div id="photos-tab" class="admin-tab-content show">
+        <div class="settings-section">
+          <h3>📸 Фотографии по умолчанию</h3>
+          
+          <div class="default-photos-container">
+            <!-- ФОТО МУЖЧИНЫ -->
+            <div class="settings-item">
+              <label>Фото мужчины</label>
+              <div class="photo-preview">
+                <img id="photoMale" src="https://via.placeholder.com/150?text=Male" alt="Male">
+                <div class="photo-preview-label">Мужчина</div>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" onchange="loadDefaultPhoto(event, 'male')" class="photo-upload-input">
+            </div>
+
+            <!-- ФОТО ЖЕНЩИНЫ -->
+            <div class="settings-item">
+              <label>Фото женщины</label>
+              <div class="photo-preview">
+                <img id="photoFemale" src="https://via.placeholder.com/150?text=Female" alt="Female">
+                <div class="photo-preview-label">Женщина</div>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" onchange="loadDefaultPhoto(event, 'female')" class="photo-upload-input">
+            </div>
+
+            <!-- ФОТО ДРУГОЕ -->
+            <div class="settings-item">
+              <label>Фото не указано</label>
+              <div class="photo-preview">
+                <img id="photoOther" src="https://via.placeholder.com/150?text=Other" alt="Other">
+                <div class="photo-preview-label">Не указано</div>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" onchange="loadDefaultPhoto(event, 'other')" class="photo-upload-input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ВКЛАДКА 2: ЦВЕТА -->
+      <div id="colors-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>🎨 Пользовательские цвета</h3>
+          
+          <div class="settings-item">
+            <label>🔄 Режим приложения</label>
+            <select id="colorModeSelect" onchange="switchColorMode()">
+              <option value="global">Глобальные параметры</option>
+              <option value="profile">Текущий профиль</option>
+            </select>
+          </div>
+
+          <div class="color-grid">
+            <div class="color-control">
+              <label>Цвет текста</label>
+              <input type="color" id="textColorAdmin" value="#333333" onchange="updateColorSettings()">
+            </div>
+
+            <div class="color-control">
+              <label>Зеленый цвет</label>
+              <input type="color" id="greenColorAdmin" value="#159b63" onchange="updateColorSettings()">
+            </div>
+
+            <div class="color-control">
+              <label>Красный цвет</label>
+              <input type="color" id="redColorAdmin" value="#d72626" onchange="updateColorSettings()">
+            </div>
+
+            <div class="color-control">
+              <label>Цвет фона карты</label>
+              <input type="color" id="cardBgColorAdmin" value="#ffffff" onchange="updateColorSettings()">
+            </div>
+
+            <div class="color-control">
+              <label>Цвет границы фото</label>
+              <input type="color" id="photoBorderColorAdmin" value="#b40000" onchange="updateColorSettings()">
+            </div>
+
+            <div class="color-control">
+              <label>Цвет фона итога</label>
+              <input type="color" id="totalBoxBgColorAdmin" value="#eef4fb" onchange="updateColorSettings()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ВКЛАДКА 3: ШРИФТЫ -->
+      <div id="fonts-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>✏️ Шрифты</h3>
+          
+          <div class="settings-item">
+            <label>🔤 Семейство шрифтов</label>
+            <select id="fontFamilySelect" onchange="updateFontSettings()">
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Comic Sans MS">Comic Sans MS</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Arial Black">Arial Black</option>
+            </select>
+          </div>
+          
+          <div class="info-box">
+            ✅ Шрифт применяется ко всему содержимому документа
+          </div>
+        </div>
+      </div>
+
+      <!-- ВКЛАДКА 4: ПАРАМЕТРЫ -->
+      <div id="settings-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>🔧 Действия</h3>
+          <div class="settings-item">
+            <button onclick="resetColorsToDefault()" class="danger">🔄 Сбросить цвета</button>
+          </div>
+          <div class="settings-item">
+            <button onclick="exportColorsSettings()" class="secondary">💾 Экспортировать параметры</button>
+          </div>
+          <div class="settings-item">
+            <button onclick="importColorsSettings()" class="secondary">📂 Импортировать параметры</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>📡 Синхронизация</h3>
+          <div class="settings-item">
+            <label><span class="status-indicator synced"></span><span>Статус:</span> <strong id="syncStatusText">Актуально</strong></label>
+            <button onclick="syncCode()" style="margin-top: 10px;">🔄 Синхронизировать</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>🔗 Доступ администратора</h3>
+          <div class="settings-item">
+            <label>Защищённая ссылка администратора</label>
+            <input type="text" id="adminLink" readonly>
+            <button onclick="copyAdminLink()" style="margin-top: 8px;">📋 Копировать</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>👥 Пользователи</h3>
+          <div class="settings-item">
+            <label>Код администратора</label>
+            <input type="text" id="currentAdminCode" readonly value="9fam9eme">
+          </div>
+          <div class="settings-item">
+            <label>Количество пользователей</label>
+            <input type="text" id="userCount" readonly>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>📊 База данных</h3>
+          <div class="info-box">
+            <strong>Всего профилей:</strong> <span id="totalProfiles">0</span><br>
+            <strong>Использованное пространство:</strong> <span id="dbSize">0 MB</span>
+          </div>
+          <div class="settings-item">
+            <button onclick="exportAdminData()">💾 Полный экспорт</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПОСАДОЧНАЯ СТРАНИЦА -->
+  <div class="landing-page" id="landingPage">
+    <section class="hero">
+      <h1>Профессиональное управление профилями A4</h1>
+      <p>Создавайте, редактируйте и делитесь своими профилями легко. Полное решение.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="switchPage('app')">Начать</button>
+        <button class="btn-secondary" onclick="scrollToFeatures()">Узнать больше</button>
+      </div>
+    </section>
+
+    <section class="features-section" id="featuresSection">
+      <h2 class="section-title">Наши функции</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>Легкое создание</h3>
+          <p>Создавайте профили A4 в несколько кликов.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h3>Автосохранение</h3>
+          <p>Все ваши профили автоматически сохраняются.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h3>Безопасный обмен</h3>
+          <p>Делитесь уникальными и безопасными ссылками.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>Типография</h3>
+          <p>Персонализируйте шрифты и внешний вид.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📸</div>
+          <h3>Управление изображениями</h3>
+          <p>Импортируйте изображения в свои профили.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖨️</div>
+          <h3>Печать в цепочку</h3>
+          <p>Печатайте несколько профилей автоматически.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing-section">
+      <h2 class="section-title">Наши тарифы</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Бесплатно</h3>
+          <div class="price">0₽</div>
+          <ul class="features-list">
+            <li>10 профилей</li>
+            <li>1 МБ хранилища</li>
+            <li>Поддержка по электронной почте</li>
+          </ul>
+          <button class="pricing-button" onclick="switchPage('app')">Начать</button>
+        </div>
+
+        <div class="pricing-card popular">
+          <div class="pricing-badge">ПОПУЛЯРНО</div>
+          <h3>Профессиональный</h3>
+          <div class="price">9,99₽</div>
+          <ul class="features-list">
+            <li>300 профилей</li>
+            <li>50 МБ хранилища</li>
+            <li>Приоритетная поддержка</li>
+            <li>Облачная синхронизация</li>
+          </ul>
+          <button class="pricing-button" onclick="switchPage('app')">Попробовать 7 дней</button>
+        </div>
+
+        <div class="pricing-card">
+          <h3>Корпоративный</h3>
+          <div class="price">По запросу</div>
+          <ul class="features-list">
+            <li>Неограниченные профили</li>
+            <li>Неограниченное хранилище</li>
+            <li>Поддержка 24/7</li>
+            <li>Пользовательский API</li>
+          </ul>
+          <button class="pricing-button">Связаться с нами</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <p>&copy; 2024 Профили A4. Все права защищены.</p>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА ПРИЛОЖЕНИЯ -->
+  <div class="app-page" id="appPage">
+    <!-- ЭКРАН ВХОДА -->
+    <div class="login-screen" id="loginScreen">
+      <div class="login-container">
+        <div class="login-header">
+          <h1>📋 Профили A4</h1>
+          <p>Профессиональное управление профилями</p>
+        </div>
+
+        <div class="login-form" id="loginFormMain">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="your@email.com" onkeypress="if(event.key==='Enter') loginUser()">
+          </div>
+
+          <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter') loginUser()">
+          </div>
+
+          <button class="login-button" onclick="loginUser()">Войти</button>
+
+          <div class="login-error" id="loginError"></div>
+
+          <div class="login-divider">или</div>
+
+          <div class="register-link">
+            <span>Нет аккаунта?</span> <a onclick="toggleRegisterForm()">Зарегистрироваться</a>
+          </div>
+
+          <div class="login-divider">---</div>
+
+          <div class="form-group">
+            <label>Код администратора</label>
+            <input type="password" id="adminCodeInput" placeholder="Введите код администратора">
+          </div>
+
+          <button class="login-button" style="background: #ff6b6b;" onclick="loginAsAdmin()">👑 Администратор</button>
+        </div>
+
+        <!-- ФОРМА РЕГИСТРАЦИИ -->
+        <div class="login-form hidden" id="registerForm">
+          <div class="form-group">
+            <label>Полное имя</label>
+            <input type="text" id="regName" placeholder="Ваше имя">
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="your@email.com">
+          </div>
+
+          <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="regPassword" placeholder="••••••••">
+          </div>
+
+          <div class="form-group">
+            <label>Подтвердить пароль</label>
+            <input type="password" id="regPassword2" placeholder="••••••••">
+          </div>
+
+          <button class="login-button" onclick="registerUser()">Зарегистрироваться</button>
+
+          <div class="login-error" id="registerError"></div>
+
+          <div class="register-link">
+            <span>Уже зарегистрированы?</span> <a onclick="toggleRegisterForm()">Войти</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- КОНТЕЙНЕР ПРИЛОЖЕНИЯ -->
+    <div class="app-container">
+      <!-- БОКОВАЯ ПАНЕЛЬ -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h1>📋 Менеджер</h1>
+          <div class="user-info">
+            <span>Пользователь:</span> <strong id="currentUser">Гость</strong>
+          </div>
+
+          <div class="storage-info">
+            <div class="storage-bar">
+              <div class="storage-fill" id="storageFill"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px;">
+              <span>Использованное пространство</span>
+              <span id="storageUsed">0 MB</span>
+            </div>
+          </div>
+
+          <div class="profile-capacity">
+            <h3>📊 ЕМКОСТЬ</h3>
+            <div class="capacity-item">
+              <span>Создано</span>
+              <span class="capacity-value good" id="profilesCreated">0</span>
+            </div>
+            <div class="capacity-item">
+              <span>Осталось</span>
+              <span class="capacity-value" id="profilesRemaining">300</span>
+            </div>
+            <div class="capacity-item">
+              <span>Использование</span>
+              <span class="capacity-value" id="percentageUsed">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-box" id="searchBox">
+          <input type="text" id="searchInput" placeholder="Поиск..." onkeyup="filterProfiles()">
+        </div>
+
+        <div class="profiles-list empty" id="profilesList">
+          <span>Нет профилей</span>
+        </div>
+
+        <div class="sidebar-footer">
+          <button class="btn-new" onclick="createNewProfile()">➕ Новое</button>
+          <button class="btn-share" id="btnShare" onclick="shareProfile()" style="display:none;">🔗 Поделиться</button>
+          <button class="btn-batch-export" id="btnBatchExport" onclick="openBatchExport()" style="display:none;">🖨️ Цепочка</button>
+          <button class="btn-export" onclick="exportDatabase()">💾 Экспорт</button>
+          <button class="btn-delete" id="btnDelete" onclick="deleteCurrentProfile()" style="display:none;">🗑️ Удал.</button>
+          <button class="btn-reset" onclick="resetDatabase()">🔄 Сброс</button>
+          <button class="btn-logout" onclick="logoutUser()">🚪 Выход</button>
+        </div>
+      </div>
+
+      <!-- ОСНОВНОЕ СОДЕРЖИМОЕ -->
+      <div class="main-content">
+        <div class="controls">
+          <!-- РАЗМЕР ИМЕНИ -->
+          <div class="control-group">
+            <label>📝 Имя</label>
+            <input type="range" id="nameSize" min="14" max="48" value="29" class="size-slider" oninput="updateElementSize('name', this.value)">
+            <div class="size-display" id="nameSizeDisplay">29px</div>
+          </div>
+
+          <!-- РАЗМЕР ТЕЛЕФОНА -->
+          <div class="control-group">
+            <label>☎️ Телефон</label>
+            <input type="range" id="phoneSize" min="12" max="36" value="23" class="size-slider" oninput="updateElementSize('phone', this.value)">
+            <div class="size-display" id="phoneSizeDisplay">23px</div>
+          </div>
+
+          <!-- РАЗМЕР ДАТЫ -->
+          <div class="control-group">
+            <label>📅 Дата</label>
+            <input type="range" id="dateSize" min="14" max="48" value="29" class="size-slider" oninput="updateElementSize('date', this.value)">
+            <div class="size-display" id="dateSizeDisplay">29px</div>
+          </div>
+
+          <!-- РАЗМЕР СТРОКИ -->
+          <div class="control-group">
+            <label>📊 Строки</label>
+            <input type="range" id="rowSize" min="12" max="36" value="24" class="size-slider" oninput="updateElementSize('row', this.value)">
+            <div class="size-display" id="rowSizeDisplay">24px</div>
+          </div>
+
+          <!-- РАЗМЕР ИТОГА -->
+          <div class="control-group">
+            <label>💰 Итого</label>
+            <input type="range" id="totalSize" min="14" max="48" value="31" class="size-slider" oninput="updateElementSize('totalPrice', this.value)">
+            <div class="size-display" id="totalSizeDisplay">31px</div>
+          </div>
+
+          <!-- РАЗМЕР ЭТИКЕТКИ -->
+          <div class="control-group">
+            <label>🏷️ Этикетка</label>
+            <input type="range" id="labelSize" min="10" max="30" value="27" class="size-slider" oninput="updateElementSize('totalLabel', this.value)">
+            <div class="size-display" id="labelSizeDisplay">27px</div>
+          </div>
+
+          <!-- ШРИФТ -->
+          <div class="control-group">
+            <label>✏️ Шрифт</label>
+            <select id="fontSelect" onchange="updateFontLive()">
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Comic Sans MS">Comic Sans MS</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Arial Black">Arial Black</option>
+            </select>
+          </div>
+
+          <!-- ПОЛ -->
+          <div class="control-group">
+            <label>👤 Пол</label>
+            <select id="genderSelect" onchange="updateGender()">
+              <option value="male">Мужчина</option>
+              <option value="female">Женщина</option>
+              <option value="other">Не указано</option>
+            </select>
+          </div>
+
+          <!-- СТРАНА -->
+          <div class="control-group">
+            <label>🌍 Страна</label>
+            <select id="countrySelect" onchange="updateCountry()">
+              <option value="">Выберите страну...</option>
+            </select>
+          </div>
+
+          <!-- ФОТО -->
+          <div class="control-group">
+            <label>📷 Фото</label>
+            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" onchange="loadImage(event)">
+          </div>
+
+          <!-- ПЕЧАТЬ -->
+          <div class="control-group">
+            <label>🖨️ Действия</label>
+            <button class="print-btn" onclick="printWithName()" style="width: 100%;">Печать</button>
+          </div>
+        </div>
+
+        <div class="document-area" id="documentArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛИ -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content">
+      <h2>🗑️ Удалить</h2>
+      <p id="deleteMessage">Вы уверены?</p>
+      <p style="color: #d72626; font-weight: bold;">⚠️ Необратимо!</p>
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" onclick="closeModal('deleteModal')">Отмена</button>
+        <button class="modal-btn danger" onclick="confirmDeleteProfile()">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="resetModal">
+    <div class="modal-content">
+      <h2>🔄 Сброс</h2>
+      <p style="color: #d72626; font-weight: bold;">⚠️ Внимание: Необратимо!</p>
+      <p><span>Вы собираетесь удалить</span> <strong id="profileCountToReset">0</strong> <span>профиль (ей).</span></p>
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" onclick="closeModal('resetModal')">Отмена</button>
+        <button class="modal-btn danger" onclick="confirmResetDatabase()">Удалить все</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="shareModal">
+    <div class="modal-content">
+      <h2>🔗 Поделиться</h2>
+      <div class="share-link-box">
+        <input type="text" id="shareLink" readonly>
+        <button class="copy-button" onclick="copyShareLink()">📋 Копировать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬ ПАКЕТНОГО ЭКСПОРТА -->
+  <div class="modal" id="batchExportModal">
+    <div class="modal-content batch-selection-modal">
+      <h2>🖨️ Печать в цепочку</h2>
+      <p>Выберите профили для печати в цепочку:</p>
+      
+      <div class="batch-controls">
+        <button onclick="selectAllBatchProfiles()">✅ Выбрать все</button>
+        <button onclick="deselectAllBatchProfiles()">❌ Отменить</button>
+      </div>
+
+      <div class="period-stats" id="periodStats">
+        <p><strong>📊 Глобальная статистика:</strong></p>
+        <p style="margin-left: 10px; font-size: 12px;">
+          <strong>Всего существующих профилей:</strong> <span id="totalExistingProfiles">0</span> / 300
+        </p>
+        <p style="margin-left: 10px; font-size: 12px;">
+          <strong>Осталось профилей:</strong> <span id="remainingProfiles">300</span>
+        </p>
+        
+        <p style="margin-top: 15px;"><strong>📈 Распределение по периодам:</strong></p>
+        <div id="periodBreakdown" style="margin-left: 10px; font-size: 12px;">
+          <!-- Будет заполнено динамически -->
+        </div>
+
+        <p style="margin-top: 15px;"><strong>📦 Текущий экспорт:</strong></p>
+        <p style="margin-left: 10px; font-size: 12px;">
+          <strong>Доминирующий период:</strong> <span id="dominantPeriod">-</span>
+        </p>
+        <p style="margin-left: 10px; font-size: 12px;">
+          <strong>Выбранные профили:</strong> <span id="selectedCount">0</span>
+        </p>
+      </div>
+
+      <div class="batch-list" id="batchList"></div>
+
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" onclick="closeModal('batchExportModal')">Отмена</button>
+        <button class="modal-btn primary" onclick="executeBatchPrint()">🖨️ Печать в цепочку</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== ТРАНСЛЯЦИИ =====
+    const translations = {
+      ru: {
+        appName: "Профили A4",
+        navHome: "Главная",
+        navApp: "Приложение",
+        user: "Посетитель",
+        adminTitle: "Параметры администратора",
+        heroTitle: "Профессиональное управление профилями A4",
+        heroDesc: "Создавайте, редактируйте и делитесь своими профилями легко. Полное решение.",
+        start: "Начать",
+        seeMore: "Узнать больше",
+        features: "Наши функции",
+        pricing: "Наши тарифы"
+      },
+      en: {
+        appName: "Profiles A4",
+        navHome: "Home",
+        navApp: "Application",
+        user: "Visitor",
+        adminTitle: "Admin Settings",
+        heroTitle: "Professional A4 Profile Management",
+        heroDesc: "Create, edit and share your profiles easily. A complete solution.",
+        start: "Get Started",
+        seeMore: "See More",
+        features: "Our Features",
+        pricing: "Our Pricing"
+      },
+      fr: {
+        appName: "Profils A4",
+        navHome: "Accueil",
+        navApp: "Application",
+        user: "Visiteur",
+        adminTitle: "Paramètres Admin",
+        heroTitle: "Gestion professionnelle de profils A4",
+        heroDesc: "Créez, modifiez et partagez vos profils facilement. Une solution complète.",
+        start: "Commencer",
+        seeMore: "Voir plus",
+        features: "Nos fonctionnalités",
+        pricing: "Nos tarifs"
+      }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'ru';
+
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem('language', lang);
+      document.documentElement.lang = lang;
+      
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+
+      document.querySelectorAll('.language-selector button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    function showAdminTab(tabName) {
+      document.querySelectorAll('.admin-tab-content').forEach(tab => {
+        tab.classList.remove('show');
+      });
+
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      document.getElementById(tabName + '-tab').classList.add('show');
+      event.target.classList.add('active');
+    }
+
+    function toggleShortcuts() {
+      document.getElementById('shortcutsOverlay').classList.toggle('show');
+    }
+
+    window.addEventListener('load', () => {
+      changeLanguage(currentLanguage);
+      const langBtn = document.querySelector(`[onclick="changeLanguage('${currentLanguage}')"]`);
+      if (langBtn) langBtn.classList.add('active');
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '?') {
+        toggleShortcuts();
+      }
+    });
+
+    const CONFIG = {
+      MAX_PROFILES: 300,
+      MAX_STORAGE_MB: 50,
+      UPDATE_INTERVAL: 5000,
+      SAVE_DEBOUNCE_MS: 1000,
+      ADMIN_CODE: '9fam9eme',
+      MAX_IMAGE_SIZE: 20 * 1024 * 1024
+    };
+
+    const COUNTRIES = {
+      "🌍 АФРИКА": {
+        "Ангола": "AO", "Бенин": "BJ", "Ботсвана": "BW", "Буркина-Фасо": "BF",
+        "Бурунди": "BI", "Камерун": "CM", "Кабо-Верде": "CV", "Коморские острова": "KM", "Конго": "CG",
+        "ДРК": "CD", "Кот-д'Ивуар": "CI", "Джибути": "DJ", "Египет": "EG", "Экваториальная Гвинея": "GQ",
+        "Эритрея": "ER", "Эсватини": "SZ", "Эфиопия": "ET", "Габон": "GA", "Гамбия": "GM",
+        "Гана": "GH", "Гвинея": "GN", "Гвинея-Бисау": "GW", "Кения": "KE", "Лесото": "LS",
+        "Либерия": "LR", "Ливия": "LY", "Мадагаскар": "MG", "Малави": "MW", "Мали": "ML",
+        "Марокко": "MA", "Мавритания": "MR", "Маврикий": "MU", "Мозамбик": "MZ", "Намибия": "NA",
+        "Нигер": "NE", "Нигерия": "NG", "Руанда": "RW", "Сан-Томе и Принсипи": "ST", "Сенегал": "SN",
+        "Сейшельские острова": "SC", "Сьерра-Леоне": "SL", "Сомалия": "SO", "Судан": "SD", "Южный Судан": "SS",
+        "ЮАР": "ZA", "Танзания": "TZ", "Того": "TG", "Тунис": "TN", "Уганда": "UG", "Замбия": "ZM", "Зимбабве": "ZW"
+      },
+      "🌏 АЗИЯ": {
+        "Афганистан": "AF", "Бахрейн": "BH", "Бангладеш": "BD", "Бруней": "BN", "Бутан": "BT",
+        "Восточный Тимор": "TL", "Гонконг": "HK", "Индия": "IN", "Индонезия": "ID", "Иордания": "JO",
+        "Ирак": "IQ", "Иран": "IR", "Израиль": "IL", "Йемен": "YE", "Казахстан": "KZ", "Камбоджа": "KH",
+        "Катар": "QA", "Киргизия": "KG", "Кипр": "CY", "Китай": "CN", "Северная Корея": "KP", "Кувейт": "KW",
+        "Лаос": "LA", "Ливан": "LB", "Макао": "MO", "Малайзия": "MY", "Мальдивы": "MV", "Монголия": "MN",
+        "Мьянма": "MM", "Непал": "NP", "Оман": "OM", "Пакистан": "PK", "Палау": "PW", "Панама": "PA",
+        "Папуа - Новая Гвинея": "PG", "Южная Корея": "KR", "Сингапур": "SG", "Сирия": "SY",
+        "Таджикистан": "TJ", "Таиланд": "TH", "Тайвань": "TW", "Туркменистан": "TM", "Турция": "TR",
+        "Узбекистан": "UZ", "Филиппины": "PH", "Франция": "FR", "Хорватия": "HR"
+      },
+      "🌎 ЕВРОПА": {
+        "Австрия": "AT", "Албания": "AL", "Андорра": "AD", "Ватикан": "VA",
+        "Великобритания": "GB", "Венгрия": "HU", "Гибралтар": "GI", "Гренада": "GD", "Гренландия": "GL",
+        "Греция": "GR", "Дания": "DK", "Ирландия": "IE", "Исландия": "IS", "Испания": "ES", "Италия": "IT",
+        "Кипр": "CY", "Косово": "XK", "Латвия": "LV", "Литва": "LT",
+        "Лихтенштейн": "LI", "Люксембург": "LU", "Мальта": "MT", "Молдавия": "MD",
+        "Монако": "MC", "Черногория": "ME", "Нидерланды": "NL", "Норвегия": "NO",
+        "Польша": "PL", "Португалия": "PT", "Россия": "RU", "Румыния": "RO", "Сан-Марино": "SM",
+        "Сербия": "RS", "Словакия": "SK", "Словения": "SI",
+        "Украина": "UA", "Франция": "FR", "Фарерские острова": "FO", "Финляндия": "FI",
+        "Хорватия": "HR", "Чехия": "CZ",
+        "Швейцария": "CH", "Швеция": "SE", "Эстония": "EE"
+      },
+      "🌎 АМЕРИКА": {
+        "Аргентина": "AR", "Багамские острова": "BS", "Барбадос": "BB", "Белиз": "BZ", "Боливия": "BO",
+        "Бразилия": "BR", "Ванауту": "VU",
+        "Великобритания": "GB", "Венесуэла": "VE", "Гаити": "HT", "Гайана": "GY",
+        "Гватемала": "GT", "Гондурас": "HN", "Гренада": "GD", "Гренландия": "GL",
+        "Доминика": "DM", "Доминиканская Республика": "DO", "Канада": "CA",
+        "Коста-Рика": "CR", "Куба": "CU", "Мексика": "MX", "Никарагуа": "NI",
+        "Панама": "PA", "Парагвай": "PY", "Перу": "PE", "Сальвадор": "SV",
+        "Сент-Винсент и Гренадины": "VC", "Сент-Китс и Невис": "KN", "Сент-Люсия": "LC",
+        "Суринам": "SR", "США": "US", "Тринидад и Тобаго": "TT", "Уругвай": "UY", "Ямайка": "JM",
+        "Чили": "CL", "Эквадор": "EC"
+      }
+    };
+
+    let authState = { currentUser: null, isLoggedIn: false, isAdmin: false };
+    let appState = {
+      allProfiles: [],
+      currentProfileId: null,
+      saveTimeout: null,
+      profileToDelete: null,
+      colorMode: 'global',
+      fontFamily: 'Times New Roman',
+      fontSettings: { fontFamily: 'Times New Roman', fontSize: 16, textColor: '#333333' },
+      colors: {
+        textColor: '#333333',
+        greenColor: '#159b63',
+        redColor: '#d72626',
+        cardBgColor: '#ffffff',
+        photoBorderColor: '#b40000',
+        totalBoxBgColor: '#eef4fb'
+      },
+      defaultPhotos: { male: null, female: null, other: null },
+      profileColors: {},
+      sizes: {
+        name: 29,
+        phone: 23,
+        date: 29,
+        row: 24,
+        totalPrice: 31,
+        totalLabel: 27
+      },
+      batchSelectedProfiles: new Set()
+    };
+
+    let db = null;
+
+    // ✅ ФУНКЦИЯ ГЕНЕРИРУЕТ НОМ ФАЙЛА
+    function generatePrintFileName(profile) {
+      const personName = profile.name
+        .trim()
+        .replace(/[▾✓\s]+/g, '_')
+        .substring(0, 40);
+
+      const period = profile.dateRange
+        .replace(/[^\w\s\-\.\/]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 30);
+
+      return `${personName}__${period}`;
+    }
+
+    // ✅ ПРИМЕНИТЬ НОМ К ДОКУМЕНТУ
+    function applyPrintFileName(profile) {
+      const fileName = generatePrintFileName(profile);
+      document.title = fileName;
+      console.log('📄 Файл назван:', fileName);
+    }
+
+    // ✅ ПЕЧАТЬ С НОМ АВТОМАТИЧЕСКИЙ
+    function printWithName() {
+      if (!appState.currentProfileId) {
+        alert('⚠️ Пожалуйста, выберите профиль');
+        return;
+      }
+
+      saveProfile().then(() => {
+        db.getProfile(appState.currentProfileId).then(profile => {
+          if (profile) {
+            applyPrintFileName(profile);
+            
+            setTimeout(() => {
+              window.print();
+            }, 100);
+          }
+        });
+      });
+    }
+
+    function openBatchExport() {
+      renderBatchList();
+      showModal('batchExportModal');
+    }
+
+    function renderBatchList() {
+      const list = document.getElementById('batchList');
+      list.innerHTML = '';
+      
+      appState.allProfiles.forEach(profile => {
+        const div = document.createElement('div');
+        div.className = 'batch-item';
+        const isSelected = appState.batchSelectedProfiles.has(profile.id);
+        
+        div.innerHTML = `
+          <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleBatchProfile(${profile.id})">
+          <div class="batch-item-info">
+            <div class="batch-item-name">${profile.name}</div>
+            <div class="batch-item-period">${profile.dateRange}</div>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+      
+      updateBatchStats();
+    }
+
+    function toggleBatchProfile(id) {
+      if (appState.batchSelectedProfiles.has(id)) {
+        appState.batchSelectedProfiles.delete(id);
+      } else {
+        appState.batchSelectedProfiles.add(id);
+      }
+      updateBatchStats();
+    }
+
+    function selectAllBatchProfiles() {
+      appState.allProfiles.forEach(p => appState.batchSelectedProfiles.add(p.id));
+      renderBatchList();
+    }
+
+    function deselectAllBatchProfiles() {
+      appState.batchSelectedProfiles.clear();
+      renderBatchList();
+    }
+
+    function calculatePeriodBreakdown() {
+      const periodCounts = {};
+      
+      appState.allProfiles.forEach(p => {
+        const period = p.dateRange;
+        if (!periodCounts[period]) {
+          periodCounts[period] = { total: 0, selected: 0 };
+        }
+        periodCounts[period].total++;
+        
+        if (appState.batchSelectedProfiles.has(p.id)) {
+          periodCounts[period].selected++;
+        }
+      });
+      
+      return periodCounts;
+    }
+
+    function updateBatchStats() {
+      const selected = appState.batchSelectedProfiles.size;
+      document.getElementById('selectedCount').textContent = selected;
+      
+      const totalProfiles = appState.allProfiles.length;
+      const remainingProfiles = CONFIG.MAX_PROFILES - totalProfiles;
+      
+      document.getElementById('totalExistingProfiles').textContent = totalProfiles;
+      document.getElementById('remainingProfiles').textContent = remainingProfiles;
+      
+      const periodBreakdown = calculatePeriodBreakdown();
+      const breakdownDiv = document.getElementById('periodBreakdown');
+      
+      if (Object.keys(periodBreakdown).length === 0) {
+        breakdownDiv.innerHTML = '<p style="color: #999;">Нет профилей</p>';
+      } else {
+        breakdownDiv.innerHTML = Object.entries(periodBreakdown)
+          .map(([period, counts]) => {
+            const percentage = ((counts.total / totalProfiles) * 100).toFixed(1);
+            const selectedBadge = counts.selected > 0 
+              ? `<span style="color: #159b63; font-weight: bold;"> [${counts.selected}]</span>`
+              : '';
+            return `
+              <div style="padding: 5px 0; border-bottom: 1px solid #eee;">
+                <span style="font-weight: bold;">${period}</span>
+                <span style="color: #666;">: ${counts.total} (${percentage}%)${selectedBadge}</span>
+              </div>
+            `;
+          })
+          .join('');
+      }
+      
+      const selectedProfiles = [];
+      const periods = {};
+      
+      appState.allProfiles.forEach(p => {
+        if (appState.batchSelectedProfiles.has(p.id)) {
+          selectedProfiles.push(p);
+          const period = p.dateRange;
+          periods[period] = (periods[period] || 0) + 1;
+        }
+      });
+      
+      const dominantPeriod = selected > 0 
+        ? Object.keys(periods).reduce((a, b) => 
+            periods[a] > periods[b] ? a : b, Object.keys(periods)[0])
+        : '-';
+      
+      document.getElementById('dominantPeriod').textContent = dominantPeriod;
+    }
+
+    function extractNumber(text) {
+      const match = text.match(/([+-]?)\s*(\d+(?:\s+\d+)*(?:[.,]\d+)?)/);
+      if (!match) return 0;
+      const sign = match[1] === '-' ? -1 : 1;
+      const numberStr = match[2].replace(/\s+/g, '').replace(',', '.');
+      return sign * parseFloat(numberStr);
+    }
+
+    function formatCurrency(number) {
+      const formatted = number.toLocaleString('ru-RU', {
+        minimumFractionDigits: number % 1 !== 0 ? 2 : 0,
+        maximumFractionDigits: 2
+      });
+      return formatted + ' ₽';
+    }
+
+    // ✅ УЛУЧШЕННАЯ ПЕЧАТЬ В ЦЕПОЧКУ
+    async function executeBatchPrint() {
+      if (appState.batchSelectedProfiles.size === 0) {
+        alert('❌ Пожалуйста, выберите хотя бы один профиль');
+        return;
+      }
+
+      try {
+        const selectedProfiles = [];
+        appState.allProfiles.forEach(p => {
+          if (appState.batchSelectedProfiles.has(p.id)) {
+            selectedProfiles.push(p);
+          }
+        });
+
+        closeModal('batchExportModal');
+
+        const periods = {};
+        selectedProfiles.forEach(p => {
+          const period = p.dateRange;
+          periods[period] = (periods[period] || 0) + 1;
+        });
+        
+        const dominantPeriod = Object.keys(periods).reduce((a, b) => 
+          periods[a] > periods[b] ? a : b, Object.keys(periods)[0]);
+
+        const progressOverlay = document.createElement('div');
+        progressOverlay.className = 'print-progress-overlay';
+        progressOverlay.id = 'printProgressOverlay';
+        document.body.appendChild(progressOverlay);
+
+        let printIndex = 0;
+        const totalProfiles = selectedProfiles.length;
+
+        async function printNext() {
+          if (printIndex >= totalProfiles) {
+            progressOverlay.remove();
+            appState.batchSelectedProfiles.clear();
+            
+            const summary = `
+✅ ПЕЧАТЬ В ЦЕПОЧКУ ЗАВЕРШЕНА
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Статистика:
+  • Профилей напечатано: ${totalProfiles}
+  • Доминирующий период: ${dominantPeriod}
+  • Дата/Время: ${new Date().toLocaleString('ru-RU')}
+            `;
+            
+            alert(summary);
+            return;
+          }
+
+          const profile = selectedProfiles[printIndex];
+          const progress = printIndex + 1;
+          const percentage = Math.round((progress / totalProfiles) * 100);
+
+          progressOverlay.innerHTML = `
+            <h2>🖨️ Печать в цепочку</h2>
+            <div class="print-progress-bar">
+              <div class="print-progress-fill" style="width: ${percentage}%;">
+                <span>${percentage}%</span>
+              </div>
+            </div>
+            <div class="print-progress-text">${progress} / ${totalProfiles}</div>
+            <div class="print-profile-name">${generatePrintFileName(profile)}</div>
+            <p style="color: #999; font-size: 12px; margin-top: 10px;">
+              📅 Период: ${profile.dateRange}<br>
+              💰 Итого: ${profile.totalPrice}
+            </p>
+          `;
+
+          await selectProfile(profile.id);
+
+          setTimeout(() => {
+            saveProfile().then(() => {
+              applyPrintFileName(profile);
+              
+              window.print();
+              
+              setTimeout(() => {
+                printIndex++;
+                printNext();
+              }, 2000);
+            });
+          }, 500);
+        }
+
+        printNext();
+
+      } catch (error) {
+        alert('❌ Ошибка: ' + error.message);
+        console.error(error);
+      }
+    }
+
+    function updateElementSize(elementClass, value) {
+      const page = document.getElementById('page');
+      if (!page) return;
+      
+      const elements = page.querySelectorAll('.' + elementClass);
+      elements.forEach(el => {
+        el.style.fontSize = value + 'px';
+      });
+      
+      document.getElementById(elementClass + 'SizeDisplay').textContent = value + 'px';
+      appState.sizes[elementClass] = parseInt(value);
+      saveProfileDebounced();
+    }
+
+    function updateFontSettings() {
+      const fontFamily = document.getElementById('fontFamilySelect').value;
+      appState.fontFamily = fontFamily;
+      localStorage.setItem('fontFamily', fontFamily);
+      applyFont();
+    }
+
+    function updateFontLive() {
+      const fontFamily = document.getElementById('fontSelect').value;
+      appState.fontFamily = fontFamily;
+      
+      const page = document.getElementById('page');
+      if (page) {
+        page.style.fontFamily = fontFamily;
+      }
+      
+      if (appState.currentProfileId && db) {
+        db.getProfile(appState.currentProfileId).then(profile => {
+          if (profile) {
+            profile.fontFamily = fontFamily;
+            profile.lastModified = new Date();
+            db.updateProfile(profile);
+          }
+        });
+      }
+      
+      document.getElementById('fontFamilySelect').value = fontFamily;
+      localStorage.setItem('fontFamily', fontFamily);
+    }
+
+    function applyFont() {
+      const page = document.getElementById('page');
+      if (page) {
+        page.style.fontFamily = appState.fontFamily;
+      }
+    }
+
+    function updateGender() {
+      const gender = document.getElementById('genderSelect').value;
+      const genderLabels = { male: 'Мужчина', female: 'Женщина', other: 'Не указано' };
+      
+      const genderEl = document.getElementById('personGender');
+      if (genderEl) genderEl.textContent = genderLabels[gender];
+      
+      const photo = document.getElementById('personPhoto');
+      if (photo) {
+        const defaultPhoto = appState.defaultPhotos[gender];
+        photo.src = defaultPhoto || 'https://via.placeholder.com/112';
+      }
+      
+      if (appState.currentProfileId && db) {
+        db.getProfile(appState.currentProfileId).then(profile => {
+          if (profile) {
+            profile.gender = gender;
+            profile.lastModified = new Date();
+            db.updateProfile(profile);
+          }
+        });
+      }
+    }
+
+    function updateCountry() {
+      const country = document.getElementById('countrySelect').value;
+      
+      const countryEl = document.getElementById('personCountry');
+      if (countryEl) countryEl.textContent = country || 'Страна';
+      
+      if (appState.currentProfileId && db) {
+        db.getProfile(appState.currentProfileId).then(profile => {
+          if (profile) {
+            profile.country = country;
+            profile.lastModified = new Date();
+            db.updateProfile(profile);
+          }
+        });
+      }
+    }
+
+    function switchPage(page) {
+      const landingPage = document.getElementById('landingPage');
+      const appPage = document.getElementById('appPage');
+      if (page === 'landing') {
+        landingPage.style.display = 'block';
+        appPage.classList.remove('show');
+        document.querySelector('[data-page="landing"]').classList.add('active');
+        document.querySelector('[data-page="app"]').classList.remove('active');
+      } else if (page === 'app') {
+        landingPage.style.display = 'none';
+        appPage.classList.add('show');
+        document.querySelector('[data-page="landing"]').classList.remove('active');
+        document.querySelector('[data-page="app"]').classList.add('active');
+      }
+    }
+
+    function scrollToFeatures() {
+      document.getElementById('featuresSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        switchPage(this.getAttribute('data-page'));
+      });
+    });
+
+    function initializeCountries() {
+      const select = document.getElementById('countrySelect');
+      select.innerHTML = '<option value="">Выберите страну...</option>';
+      Object.keys(COUNTRIES).forEach(continent => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = continent;
+        Object.keys(COUNTRIES[continent]).forEach(country => {
+          const option = document.createElement('option');
+          option.value = country;
+          option.textContent = country;
+          optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+      });
+    }
+
+    function toggleAdminSettings() {
+      document.getElementById('adminSettingsPanel').classList.toggle('show');
+    }
+
+    function loadDefaultPhoto(event, gender) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > CONFIG.MAX_IMAGE_SIZE) {
+        alert('❌ Изображение слишком велико');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Image = e.target.result;
+        appState.defaultPhotos[gender] = base64Image;
+        const photoElement = document.getElementById(`photo${gender.charAt(0).toUpperCase() + gender.slice(1)}`);
+        if (photoElement) {
+          photoElement.src = base64Image;
+        }
+        localStorage.setItem(`defaultPhoto_${gender}`, base64Image);
+        alert('✅ Фото сохранено');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function switchColorMode() {
+      const mode = document.getElementById('colorModeSelect').value;
+      appState.colorMode = mode;
+      if (mode === 'global') {
+        document.getElementById('textColorAdmin').value = appState.colors.textColor;
+        document.getElementById('greenColorAdmin').value = appState.colors.greenColor;
+        document.getElementById('redColorAdmin').value = appState.colors.redColor;
+        document.getElementById('cardBgColorAdmin').value = appState.colors.cardBgColor;
+        document.getElementById('photoBorderColorAdmin').value = appState.colors.photoBorderColor;
+        document.getElementById('totalBoxBgColorAdmin').value = appState.colors.totalBoxBgColor;
+      } else if (mode === 'profile' && appState.currentProfileId) {
+        const profileColors = appState.profileColors[appState.currentProfileId] || appState.colors;
+        document.getElementById('textColorAdmin').value = profileColors.textColor || appState.colors.textColor;
+        document.getElementById('greenColorAdmin').value = profileColors.greenColor || appState.colors.greenColor;
+        document.getElementById('redColorAdmin').value = profileColors.redColor || appState.colors.redColor;
+        document.getElementById('cardBgColorAdmin').value = profileColors.cardBgColor || appState.colors.cardBgColor;
+        document.getElementById('photoBorderColorAdmin').value = profileColors.photoBorderColor || appState.colors.photoBorderColor;
+        document.getElementById('totalBoxBgColorAdmin').value = profileColors.totalBoxBgColor || appState.colors.totalBoxBgColor;
+      }
+    }
+
+    function updateColorSettings() {
+      const colors = {
+        textColor: document.getElementById('textColorAdmin').value,
+        greenColor: document.getElementById('greenColorAdmin').value,
+        redColor: document.getElementById('redColorAdmin').value,
+        cardBgColor: document.getElementById('cardBgColorAdmin').value,
+        photoBorderColor: document.getElementById('photoBorderColorAdmin').value,
+        totalBoxBgColor: document.getElementById('totalBoxBgColorAdmin').value
+      };
+      if (appState.colorMode === 'global') {
+        appState.colors = colors;
+        localStorage.setItem('globalColors', JSON.stringify(colors));
+      } else if (appState.colorMode === 'profile' && appState.currentProfileId) {
+        appState.profileColors[appState.currentProfileId] = colors;
+        localStorage.setItem('profileColors', JSON.stringify(appState.profileColors));
+      }
+      applyColors();
+    }
+
+    function applyColors() {
+      const colors = appState.colorMode === 'profile' && appState.currentProfileId 
+        ? (appState.profileColors[appState.currentProfileId] || appState.colors)
+        : appState.colors;
+      const page = document.getElementById('page');
+      if (!page) return;
+      page.style.color = colors.textColor;
+      page.querySelectorAll('.green').forEach(el => el.style.color = colors.greenColor);
+      page.querySelectorAll('.red').forEach(el => el.style.color = colors.redColor);
+      page.querySelectorAll('.card').forEach(el => el.style.backgroundColor = colors.cardBgColor);
+      const photo = page.querySelector('.person-photo');
+      if (photo) photo.style.borderColor = colors.photoBorderColor;
+      const totalBox = page.querySelector('.total-box');
+      if (totalBox) totalBox.style.backgroundColor = colors.totalBoxBgColor;
+    }
+
+    function resetColorsToDefault() {
+      if (confirm('Вы уверены?')) {
+        appState.colors = {
+          textColor: '#333333',
+          greenColor: '#159b63',
+          redColor: '#d72626',
+          cardBgColor: '#ffffff',
+          photoBorderColor: '#b40000',
+          totalBoxBgColor: '#eef4fb'
+        };
+        if (appState.colorMode === 'profile' && appState.currentProfileId) {
+          delete appState.profileColors[appState.currentProfileId];
+          localStorage.setItem('profileColors', JSON.stringify(appState.profileColors));
+        } else {
+          localStorage.removeItem('globalColors');
+        }
+        switchColorMode();
+        applyColors();
+        alert('✅ Цвета сброшены');
+      }
+    }
+
+    function exportColorsSettings() {
+      const settingsData = {
+        globalColors: appState.colors,
+        profileColors: appState.profileColors
+      };
+      const dataStr = JSON.stringify(settingsData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `color_settings_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('✅ Экспортировано');
+    }
+
+    function importColorsSettings() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.globalColors) {
+              appState.colors = data.globalColors;
+              localStorage.setItem('globalColors', JSON.stringify(data.globalColors));
+            }
+            if (data.profileColors) {
+              appState.profileColors = data.profileColors;
+              localStorage.setItem('profileColors', JSON.stringify(data.profileColors));
+            }
+            switchColorMode();
+            applyColors();
+            alert('✅ Импортировано');
+          } catch (error) {
+            alert('❌ Ошибка');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function generateAdminLink() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const adminLink = `${baseUrl}?admin=${CONFIG.ADMIN_CODE}`;
+      document.getElementById('adminLink').value = adminLink;
+    }
+
+    function copyAdminLink() {
+      const link = document.getElementById('adminLink');
+      link.select();
+      document.execCommand('copy');
+      alert('✅ Скопировано');
+    }
+
+    function syncCode() {
+      const statusEl = document.getElementById('syncStatusText');
+      statusEl.textContent = 'Синхронизация...';
+      setTimeout(() => {
+        statusEl.textContent = 'Актуально';
+      }, 1000);
+    }
+
+    function updateAdminPanelInfo() {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      document.getElementById('userCount').value = users.length;
+      generateAdminLink();
+      updateStorageInfo();
+
+      const malePhoto = localStorage.getItem('defaultPhoto_male');
+      const femalePhoto = localStorage.getItem('defaultPhoto_female');
+      const otherPhoto = localStorage.getItem('defaultPhoto_other');
+
+      if (malePhoto) appState.defaultPhotos.male = malePhoto;
+      if (femalePhoto) appState.defaultPhotos.female = femalePhoto;
+      if (otherPhoto) appState.defaultPhotos.other = otherPhoto;
+
+      if (malePhoto) document.getElementById('photoMale').src = malePhoto;
+      if (femalePhoto) document.getElementById('photoFemale').src = femalePhoto;
+      if (otherPhoto) document.getElementById('photoOther').src = otherPhoto;
+
+      const globalColors = localStorage.getItem('globalColors');
+      const profileColors = localStorage.getItem('profileColors');
+      const fontFamily = localStorage.getItem('fontFamily');
+
+      if (globalColors) {
+        appState.colors = JSON.parse(globalColors);
+      }
+      if (profileColors) {
+        appState.profileColors = JSON.parse(profileColors);
+      }
+      if (fontFamily) {
+        appState.fontFamily = fontFamily;
+        document.getElementById('fontFamilySelect').value = fontFamily;
+      }
+
+      switchColorMode();
+    }
+
+    function exportAdminData() {
+      if (!db) {
+        alert('❌ БД недоступна');
+        return;
+      }
+      
+      db.getAllProfiles().then(allData => {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const exportData = {
+          exportDate: new Date(),
+          totalProfiles: allData.length,
+          totalUsers: users.length,
+          profiles: allData,
+          colors: appState.colors,
+          fontFamily: appState.fontFamily,
+          config: CONFIG
+        };
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `admin_export_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('✅ Экспорт завершен');
+      });
+    }
+
+    class ProfileDatabase {
+      constructor(userId) {
+        this.userId = userId;
+        this.dbName = `ProfilesDB_${userId}`;
+        this.storeName = 'profiles';
+        this.db = null;
+        this.init();
+      }
+
+      init() {
+        const request = indexedDB.open(this.dbName, 1);
+        request.onsuccess = (e) => {
+          this.db = e.target.result;
+          console.log('✅ БД готова');
+          initializeApp();
+        };
+        request.onupgradeneeded = (e) => {
+          const dbInstance = e.target.result;
+          if (!dbInstance.objectStoreNames.contains(this.storeName)) {
+            dbInstance.createObjectStore(this.storeName, { keyPath: 'id' });
+          }
+        };
+      }
+
+      addProfile(profile) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readwrite');
+          const request = tx.objectStore(this.storeName).add(profile);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      updateProfile(profile) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readwrite');
+          const request = tx.objectStore(this.storeName).put(profile);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      getProfile(id) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readonly');
+          const request = tx.objectStore(this.storeName).get(id);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      getAllProfiles() {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readonly');
+          const request = tx.objectStore(this.storeName).getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      deleteProfile(id) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readwrite');
+          const request = tx.objectStore(this.storeName).delete(id);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      deleteAllProfiles() {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readwrite');
+          const request = tx.objectStore(this.storeName).clear();
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      countProfiles() {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction([this.storeName], 'readonly');
+          const request = tx.objectStore(this.storeName).count();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+    }
+
+    function loginUser() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+      if (!email || !password) {
+        errorEl.textContent = '❌ Заполните все поля';
+        errorEl.classList.add('show');
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.email === email && u.password === password);
+      if (!user) {
+        errorEl.textContent = '❌ Неверные учетные данные';
+        errorEl.classList.add('show');
+        return;
+      }
+      authState.currentUser = user;
+      authState.isLoggedIn = true;
+      db = new ProfileDatabase(user.id);
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('currentUser').textContent = user.name || user.email;
+      document.getElementById('userBadge').textContent = user.name || user.email;
+      updateAdminPanelInfo();
+    }
+
+    function registerUser() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const password2 = document.getElementById('regPassword2').value;
+      const errorEl = document.getElementById('registerError');
+      if (!name || !email || !password || !password2) {
+        errorEl.textContent = '❌ Заполните все поля';
+        errorEl.classList.add('show');
+        return;
+      }
+      if (password !== password2) {
+        errorEl.textContent = '❌ Пароли не совпадают';
+        errorEl.classList.add('show');
+        return;
+      }
+      if (password.length < 6) {
+        errorEl.textContent = '❌ Минимум 6 символов';
+        errorEl.classList.add('show');
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      if (users.some(u => u.email === email)) {
+        errorEl.textContent = '❌ Этот email уже используется';
+        errorEl.classList.add('show');
+        return;
+      }
+      const newUser = {
+        id: 'user_' + Date.now(),
+        name: name,
+        email: email,
+        password: password,
+        createdAt: new Date()
+      };
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      authState.currentUser = newUser;
+      authState.isLoggedIn = true;
+      db = new ProfileDatabase(newUser.id);
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('currentUser').textContent = newUser.name;
+      document.getElementById('userBadge').textContent = newUser.name;
+      initializeApp();
+    }
+
+    function loginAsAdmin() {
+      const adminCode = document.getElementById('adminCodeInput').value.trim();
+      const errorEl = document.getElementById('loginError');
+      if (adminCode !== CONFIG.ADMIN_CODE) {
+        errorEl.textContent = '❌ Неверный код';
+        errorEl.classList.add('show');
+        return;
+      }
+      authState.isAdmin = true;
+      authState.isLoggedIn = true;
+      db = new ProfileDatabase('admin');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('currentUser').textContent = '👑 АДМИНИСТРАТОР';
+      document.getElementById('userBadge').textContent = '👑 АДМИНИСТРАТОР';
+      document.getElementById('userBadge').classList.add('admin');
+      updateAdminPanelInfo();
+    }
+
+    function logoutUser() {
+      if (confirm('Выйти?')) {
+        authState = { currentUser: null, isLoggedIn: false, isAdmin: false };
+        appState = { allProfiles: [], currentProfileId: null, batchSelectedProfiles: new Set() };
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('adminCodeInput').value = '';
+        document.getElementById('currentUser').textContent = 'Гость';
+        document.getElementById('userBadge').textContent = 'Посетитель';
+        document.getElementById('userBadge').classList.remove('admin');
+      }
+    }
+
+    function toggleRegisterForm() {
+      document.getElementById('loginFormMain').classList.toggle('hidden');
+      document.getElementById('registerForm').classList.toggle('hidden');
+    }
+
+    function loadImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > CONFIG.MAX_IMAGE_SIZE) {
+        alert('❌ Изображение слишком велико');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Image = e.target.result;
+        const img = document.getElementById('personPhoto');
+        if (img) {
+          img.src = base64Image;
+          if (appState.currentProfileId && db) {
+            try {
+              const profile = await db.getProfile(appState.currentProfileId);
+              if (profile) {
+                profile.photoImage = base64Image;
+                profile.lastModified = new Date();
+                await db.updateProfile(profile);
+                updateStorageInfo();
+              }
+            } catch (error) {
+              console.error('Ошибка:', error);
+            }
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function initializeApp() {
+      initializeCountries();
+      loadProfiles();
+      updateStorageInfo();
+      setInterval(updateStorageInfo, CONFIG.UPDATE_INTERVAL);
+    }
+
+    async function createNewProfile() {
+      try {
+        const count = await db.countProfiles();
+        if (count >= CONFIG.MAX_PROFILES) {
+          alert(`❌ Достигнут лимит ${CONFIG.MAX_PROFILES} профилей`);
+          return;
+        }
+        const newProfile = {
+          id: Date.now(),
+          name: ' ▾',
+          phone: 'Телефон не указан',
+          gender: 'other',
+          country: '',
+          dateRange: '01/06/2026 - 07/06/2026',
+          orderQuantity: 'Количество',
+          orderQuantityValue: 'не указано',
+          orderSum: ' ₽',
+          bonuses: '+0 ₽',
+          fines: '-0 ₽',
+          totalPrice: '0 ₽',
+          photoImage: null,
+          fontFamily: 'Times New Roman',
+          fontSettings: JSON.parse(JSON.stringify(appState.fontSettings)),
+          sizes: JSON.parse(JSON.stringify(appState.sizes)),
+          lastModified: new Date()
+        };
+        await db.addProfile(newProfile);
+        await loadProfiles();
+        await selectProfile(newProfile.id);
+        updateStorageInfo();
+      } catch (error) {
+        alert('❌ Ошибка: ' + error.message);
+      }
+    }
+
+    async function loadProfiles() {
+      appState.allProfiles = await db.getAllProfiles();
+      appState.allProfiles.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+      renderProfilesList();
+      if (appState.allProfiles.length === 0) {
+        displayEmptyState();
+      } else if (!appState.currentProfileId) {
+        await selectProfile(appState.allProfiles[0].id);
+      }
+    }
+
+    function renderProfilesList() {
+      const list = document.getElementById('profilesList');
+      const searchBox = document.getElementById('searchBox');
+      if (appState.allProfiles.length === 0) {
+        list.classList.add('empty');
+        list.innerHTML = 'Нет профилей';
+        searchBox.classList.remove('show');
+        document.getElementById('btnBatchExport').style.display = 'none';
+        return;
+      }
+      list.classList.remove('empty');
+      searchBox.classList.add('show');
+      document.getElementById('btnBatchExport').style.display = 'inline-block';
+      list.innerHTML = '';
+      appState.allProfiles.forEach(profile => {
+        const div = document.createElement('div');
+        div.className = `profile-item ${profile.id === appState.currentProfileId ? 'active' : ''}`;
+        div.onclick = () => selectProfile(profile.id);
+        div.innerHTML = `
+          <div class="profile-item-content">
+            <div class="profile-item-name">${profile.name}</div>
+            <div class="profile-item-date">${profile.dateRange}</div>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function displayEmptyState() {
+      document.getElementById('documentArea').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-content">
+            <span class="empty-state-icon">📋</span>
+            <h2>Добро пожаловать!</h2>
+            <p>Нет профилей</p>
+            <button class="create-btn" onclick="createNewProfile()">➕ Новое</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('btnDelete').style.display = 'none';
+      document.getElementById('btnShare').style.display = 'none';
+      document.getElementById('btnBatchExport').style.display = 'none';
+    }
+
+    async function selectProfile(id) {
+      appState.currentProfileId = id;
+      const profile = await db.getProfile(id);
+      if (profile) {
+        document.getElementById('genderSelect').value = profile.gender || 'male';
+        document.getElementById('countrySelect').value = profile.country || '';
+        document.getElementById('fontSelect').value = profile.fontFamily || 'Times New Roman';
+        appState.fontFamily = profile.fontFamily || 'Times New Roman';
+        
+        if (profile.sizes) {
+          appState.sizes = profile.sizes;
+        }
+
+        const photoSrc = profile.photoImage || appState.defaultPhotos[profile.gender || 'male'] || 'https://via.placeholder.com/112';
+        const genderLabel = profile.gender === 'male' ? 'Мужчина' 
+                          : profile.gender === 'female' ? 'Женщина' 
+                          : 'Не указано';
+        document.getElementById('documentArea').innerHTML = `
+          <div class="a4-wrapper">
+            <div class="a4" id="page" style="font-family: ${profile.fontFamily || 'Times New Roman'}">
+              <div class="card top">
+                <div class="person-info">
+                  <div class="name" contenteditable="true" id="personName" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.name}px">${profile.name}</div>
+                  <div class="phone" contenteditable="true" id="personPhone" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.phone}px">${profile.phone}</div>
+                  <div class="person-details">
+                    <span contenteditable="true" id="personGender" oninput="saveProfileDebounced()">${genderLabel}</span>
+                    <span> • </span>
+                    <span contenteditable="true" id="personCountry" oninput="saveProfileDebounced()">${profile.country || 'Страна'}</span>
+                  </div>
+                </div>
+                <img id="personPhoto" class="person-photo" src="${photoSrc}" alt="Фото профиля" onclick="document.getElementById('photoInput').click()">
+              </div>
+              <div class="card">
+                <div class="date" contenteditable="true" id="dateRange" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.date}px">${profile.dateRange}</div>
+                <div class="row" style="font-size: ${appState.sizes.row}px">
+                  <span contenteditable="true" id="orderQuantity" oninput="saveProfileDebounced()">${profile.orderQuantity}</span>
+                  <span contenteditable="true" id="orderQuantityValue" oninput="saveProfileDebounced()">${profile.orderQuantityValue}</span>
+                </div>
+                <div class="row" style="font-size: ${appState.sizes.row}px">
+                  <span>Сумма</span>
+                  <span contenteditable="true" id="orderSum" oninput="calculateTotal(); saveProfileDebounced()">${profile.orderSum}</span>
+                </div>
+                <div class="row" style="font-size: ${appState.sizes.row}px">
+                  <span>Бонусы</span>
+                  <span class="green" contenteditable="true" id="bonuses" oninput="calculateTotal(); saveProfileDebounced()">${profile.bonuses}</span>
+                </div>
+                <div class="row" style="font-size: ${appState.sizes.row}px">
+                  <span>Штрафы</span>
+                  <span class="red" contenteditable="true" id="fines" oninput="calculateTotal(); saveProfileDebounced()">${profile.fines}</span>
+                </div>
+                <div class="total-box">
+                  <span class="total-label" style="font-size: ${appState.sizes.totalLabel}px">ИТОГО</span>
+                  <span class="total-price" style="font-size: ${appState.sizes.totalPrice}px" id="totalPrice">${profile.totalPrice}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        document.getElementById('nameSize').value = appState.sizes.name;
+        document.getElementById('nameSizeDisplay').textContent = appState.sizes.name + 'px';
+        
+        document.getElementById('phoneSize').value = appState.sizes.phone;
+        document.getElementById('phoneSizeDisplay').textContent = appState.sizes.phone + 'px';
+        
+        document.getElementById('dateSize').value = appState.sizes.date;
+        document.getElementById('dateSizeDisplay').textContent = appState.sizes.date + 'px';
+        
+        document.getElementById('rowSize').value = appState.sizes.row;
+        document.getElementById('rowSizeDisplay').textContent = appState.sizes.row + 'px';
+        
+        document.getElementById('totalSize').value = appState.sizes.totalPrice;
+        document.getElementById('totalSizeDisplay').textContent = appState.sizes.totalPrice + 'px';
+        
+        document.getElementById('labelSize').value = appState.sizes.totalLabel;
+        document.getElementById('labelSizeDisplay').textContent = appState.sizes.totalLabel + 'px';
+        
+        applyColors();
+        renderProfilesList();
+        document.getElementById('btnDelete').style.display = 'inline-block';
+        document.getElementById('btnShare').style.display = 'inline-block';
+        calculateTotal();
+      }
+    }
+
+    async function saveProfile() {
+      if (!appState.currentProfileId || !db) return;
+      try {
+        const profile = await db.getProfile(appState.currentProfileId);
+        if (!profile) return;
+        profile.name = document.getElementById('personName').innerText;
+        profile.phone = document.getElementById('personPhone').innerText;
+        profile.dateRange = document.getElementById('dateRange').innerText;
+        profile.orderQuantity = document.getElementById('orderQuantity').innerText;
+        profile.orderQuantityValue = document.getElementById('orderQuantityValue').innerText;
+        profile.orderSum = document.getElementById('orderSum').innerText;
+        profile.bonuses = document.getElementById('bonuses').innerText;
+        profile.fines = document.getElementById('fines').innerText;
+        profile.totalPrice = document.getElementById('totalPrice').innerText;
+        profile.fontFamily = appState.fontFamily;
+        const photoEl = document.getElementById('personPhoto');
+        if (photoEl && photoEl.src && photoEl.src.startsWith('data:')) {
+          profile.photoImage = photoEl.src;
+        }
+        profile.fontSettings = JSON.parse(JSON.stringify(appState.fontSettings));
+        profile.sizes = JSON.parse(JSON.stringify(appState.sizes));
+        profile.lastModified = new Date();
+        await db.updateProfile(profile);
+        await loadProfiles();
+        updateStorageInfo();
+        console.log('✅ Профиль сохранен');
+      } catch (error) {
+        console.error('Ошибка:', error);
+      }
+    }
+
+    function saveProfileDebounced() {
+      clearTimeout(appState.saveTimeout);
+      appState.saveTimeout = setTimeout(saveProfile, CONFIG.SAVE_DEBOUNCE_MS);
+    }
+
+    async function deleteCurrentProfile() {
+      if (!appState.currentProfileId) return;
+      const profile = await db.getProfile(appState.currentProfileId);
+      appState.profileToDelete = profile;
+      document.getElementById('deleteMessage').innerHTML = `Удалить "<strong>${profile.name}</strong>"?`;
+      showModal('deleteModal');
+    }
+
+    async function confirmDeleteProfile() {
+      if (!appState.profileToDelete) return;
+      await db.deleteProfile(appState.profileToDelete.id);
+      appState.currentProfileId = null;
+      await loadProfiles();
+      updateStorageInfo();
+      closeModal('deleteModal');
+    }
+
+    async function shareProfile() {
+      if (!appState.currentProfileId) return;
+      const profile = await db.getProfile(appState.currentProfileId);
+      if (!profile.shareToken) {
+        profile.shareToken = btoa(appState.currentProfileId + ':' + Date.now());
+        await db.updateProfile(profile);
+      }
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${baseUrl}?share=${profile.shareToken}&id=${appState.currentProfileId}`;
+      document.getElementById('shareLink').value = shareUrl;
+      showModal('shareModal');
+    }
+
+    function copyShareLink() {
+      const link = document.getElementById('shareLink');
+      link.select();
+      document.execCommand('copy');
+      alert('✅ Скопировано');
+    }
+
+    async function resetDatabase() {
+      const count = await db.countProfiles();
+      document.getElementById('profileCountToReset').innerText = count;
+      showModal('resetModal');
+    }
+
+    async function confirmResetDatabase() {
+      await db.deleteAllProfiles();
+      appState.allProfiles = [];
+      appState.currentProfileId = null;
+      await loadProfiles();
+      updateStorageInfo();
+      closeModal('resetModal');
+      alert('✅ База данных сброшена');
+    }
+
+    async function exportDatabase() {
+      const allData = await db.getAllProfiles();
+      const dataStr = JSON.stringify(allData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `profiles_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('✅ Экспортировано');
+    }
+
+    async function updateStorageInfo() {
+      try {
+        if (!db) return;
+        const count = await db.countProfiles();
+        const allData = await db.getAllProfiles();
+        let totalSize = 0;
+        allData.forEach(p => {
+          totalSize += JSON.stringify(p).length;
+        });
+        const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
+        const remaining = CONFIG.MAX_PROFILES - count;
+        const percentage = ((count / CONFIG.MAX_PROFILES) * 100).toFixed(1);
+        document.getElementById('profilesCreated').innerText = count;
+        document.getElementById('profilesRemaining').innerText = remaining;
+        document.getElementById('percentageUsed').innerText = percentage + '%';
+        document.getElementById('storageUsed').innerText = totalSizeMB + ' MB';
+        document.getElementById('storageFill').style.width = percentage + '%';
+        document.getElementById('totalProfiles').textContent = count;
+        document.getElementById('dbSize').textContent = totalSizeMB + ' MB';
+        if (percentage > 90) {
+          document.getElementById('storageFill').classList.add('warning');
+        } else {
+          document.getElementById('storageFill').classList.remove('warning');
+        }
+      } catch (error) {
+        console.error('Ошибка:', error);
+      }
+    }
+
+    function filterProfiles() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('.profile-item').forEach(item => {
+        const name = item.querySelector('.profile-item-name').innerText.toLowerCase();
+        item.style.display = name.includes(search) ? 'block' : 'none';
+      });
+    }
+
+    function calculateTotal() {
+      const orderSumEl = document.getElementById("orderSum");
+      const bonusesEl = document.getElementById("bonuses");
+      const finesEl = document.getElementById("fines");
+      if (!orderSumEl || !bonusesEl || !finesEl) return;
+      const orderSum = extractNumber(orderSumEl.innerText);
+      const bonuses = extractNumber(bonusesEl.innerText);
+      const fines = extractNumber(finesEl.innerText);
+      const total = orderSum + bonuses + fines;
+      const totalPriceEl = document.getElementById("totalPrice");
+      if (totalPriceEl) {
+        totalPriceEl.innerText = formatCurrency(total);
+      }
+    }
+
+    function showModal(modalId) {
+      document.getElementById(modalId).classList.add('show');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    // СОЧЕТАНИЯ КЛАВИШ
+    document.addEventListener('keydown', function(event) {
+      if (event.ctrlKey && event.key === 'p') {
+        event.preventDefault();
+        printWithName();
+      }
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        saveProfile();
+      }
+      if (event.ctrlKey && event.key === 'n') {
+        event.preventDefault();
+        createNewProfile();
+      }
+      if (event.ctrlKey && event.key === 'e') {
+        event.preventDefault();
+        openBatchExport();
+      }
+      if (event.ctrlKey && event.key === 'o') {
+        event.preventDefault();
+        toggleAdminSettings();
+      }
+    });
+
+    window.addEventListener('load', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminCode = urlParams.get('admin');
+      if (adminCode === CONFIG.ADMIN_CODE) {
+        document.getElementById('adminCodeInput').value = adminCode;
+        loginAsAdmin();
+        switchPage('app');
+      }
+      changeLanguage(currentLanguage);
+    });
+
+    console.log('✅ Приложение запущено');
+  </script>
+
+</body>
+</html>
