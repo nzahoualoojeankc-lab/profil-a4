@@ -1764,6 +1764,270 @@
       }
     }
 
+
+    /* ==========================================================
+       MOBILE DRAWERS — panneaux latéraux coulissants
+       Smartphone : gauche/droite = tiroirs, A4 au centre
+       Ordinateur : panneaux fixes/ancrés
+       ========================================================== */
+
+    .mobile-panel-toggle,
+    .mobile-drawer-close,
+    .mobile-drawer-backdrop {
+      display: none;
+    }
+
+    /* ===== ICÔNES PROTÉGÉES : AUTHENTIFICATION + FICHE A4 =====
+       Elles restent invisibles et non interactives jusqu'à ce que
+       l'utilisateur soit connecté ET qu'une fiche A4 soit réellement affichée. */
+    .protected-ui-icon {
+      transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
+    }
+
+    body:not(.a4-ui-ready) .protected-ui-icon {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    body:not(.a4-ui-ready) #shortcutsOverlay {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    /* Le document reste la zone centrale principale */
+    .mobile-main-content {
+      min-width: 0;
+    }
+
+    @media (max-width: 767px) {
+      body.mobile-panels-open {
+        overflow: hidden;
+        touch-action: none;
+      }
+
+      .app-container {
+        position: relative;
+        min-height: calc(100vh - 70px);
+        overflow: hidden;
+      }
+
+      /* IMPORTANT : les deux panneaux deviennent des tiroirs
+         superposés au document, sans réduire la largeur de l'A4. */
+      .mobile-drawer-left {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(88vw, 360px) !important;
+        height: 100dvh;
+        z-index: 3000;
+        transform: translate3d(-105%, 0, 0);
+        transition: transform 280ms cubic-bezier(.22,.61,.36,1);
+        box-shadow: 10px 0 30px rgba(0,0,0,.25);
+        overflow: hidden;
+        will-change: transform;
+      }
+
+      .mobile-drawer-left.mobile-drawer-open {
+        transform: translate3d(0, 0, 0);
+      }
+
+      .mobile-main-content {
+        width: 100% !important;
+        min-width: 100%;
+        flex: 1 1 100%;
+      }
+
+      /* Sur mobile, les contrôles deviennent le panneau droit.
+         Le contenu A4 reste derrière et garde toute la largeur. */
+      .mobile-main-content .controls {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(92vw, 430px);
+        max-height: 100dvh;
+        height: 100dvh;
+        z-index: 2999;
+        overflow-y: auto;
+        transform: translate3d(105%, 0, 0);
+        transition: transform 280ms cubic-bezier(.22,.61,.36,1);
+        box-shadow: -10px 0 30px rgba(0,0,0,.25);
+        padding: 58px 14px 20px;
+        display: grid;
+        align-content: start;
+        background: #fff;
+        overscroll-behavior: contain;
+      }
+
+      .mobile-main-content.mobile-right-open .controls {
+        transform: translate3d(0, 0, 0);
+      }
+
+      .mobile-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 2990;
+        background: rgba(0,0,0,.45);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+        display: block;
+      }
+
+      body.mobile-panels-open .mobile-drawer-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .mobile-panel-toggle {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 42px;
+        height: 72px;
+        border: 0;
+        z-index: 2980;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #fff;
+        background: #2980b9;
+        box-shadow: 0 4px 16px rgba(0,0,0,.22);
+        font-size: 22px;
+        transition: opacity .2s, transform .2s, background .2s;
+      }
+
+      .mobile-panel-toggle:active {
+        transform: translateY(-50%) scale(.96);
+      }
+
+      .mobile-left-toggle {
+        left: 0;
+        border-radius: 0 14px 14px 0;
+      }
+
+      .mobile-right-toggle {
+        right: 0;
+        border-radius: 14px 0 0 14px;
+      }
+
+      body.mobile-panels-open .mobile-panel-toggle {
+        opacity: .25;
+        pointer-events: none;
+      }
+
+      .mobile-drawer-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 38px;
+        height: 38px;
+        z-index: 20;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(0,0,0,.18);
+        color: #fff;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .mobile-right-close {
+        background: #2980b9;
+        position: fixed;
+        top: 10px;
+        right: 12px;
+      }
+
+      /* Ne jamais forcer l'A4 à sortir de la zone centrale.
+         L'utilisateur peut zoomer/défiler horizontalement si nécessaire. */
+      .document-area {
+        width: 100%;
+        min-width: 0;
+        padding: 10px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      .a4-wrapper {
+        width: max-content;
+        min-width: 100%;
+        min-height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      /* Évite que le tiroir gauche soit repoussé par le flex layout. */
+      .sidebar-footer {
+        padding-bottom: calc(15px + env(safe-area-inset-bottom));
+      }
+
+      .mobile-main-content .controls {
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      }
+
+      @supports not (height: 100dvh) {
+        .mobile-drawer-left,
+        .mobile-main-content .controls {
+          height: 100vh;
+          max-height: 100vh;
+        }
+      }
+
+      /* Petits téléphones */
+      @media (max-width: 390px) {
+        .mobile-drawer-left {
+          width: 92vw !important;
+        }
+
+        .mobile-main-content .controls {
+          width: 94vw;
+          grid-template-columns: 1fr;
+        }
+
+        .mobile-panel-toggle {
+          width: 38px;
+          height: 64px;
+        }
+      }
+    }
+
+    /* ==========================================================
+       TABLETTE / ORDINATEUR — panneaux fixes et ancrés
+       ========================================================== */
+    @media (min-width: 768px) {
+      .mobile-drawer-left {
+        position: relative;
+        transform: none !important;
+        left: auto;
+        top: auto;
+        bottom: auto;
+        height: auto;
+        width: 350px;
+      }
+
+      .mobile-main-content .controls {
+        position: relative;
+        transform: none !important;
+        width: auto;
+        height: auto;
+        max-height: 300px;
+        box-shadow: none;
+        overflow-y: auto;
+        padding: 15px;
+        display: grid;
+      }
+    }
+
     /* ===== ИДЕАЛЬНАЯ НАСТРОЙКА ПЕЧАТИ ===== */
     @media print {
       .top-header,
@@ -1852,6 +2116,11 @@
 
 <body>
 
+  <script>
+    // Verrouillage par défaut : connexion + fiche A4 nécessaires.
+    document.body.classList.remove('a4-ui-ready');
+  </script>
+
   <!-- ВЕРХНИЙ ЗАГОЛОВОК -->
   <div class="top-header">
     <div class="top-header-left">
@@ -1868,8 +2137,8 @@
         <button onclick="changeLanguage('fr')" title="Français">FR</button>
       </div>
       <div class="user-badge" id="userBadge">Посетитель</div>
-      <button class="admin-settings-btn" onclick="toggleAdminSettings()" title="Параметры администратора">⚙️</button>
-      <button class="admin-settings-btn" onclick="toggleShortcuts()" title="Сочетания клавиш" style="background: #3498db;">⌨️</button>
+      <button class="admin-settings-btn protected-ui-icon" onclick="toggleAdminSettings()" title="Параметры администратора">⚙️</button>
+      <button class="admin-settings-btn protected-ui-icon" onclick="toggleShortcuts()" title="Сочетания клавиш" style="background: #3498db;">⌨️</button>
     </div>
   </div>
 
@@ -2254,10 +2523,27 @@
       </div>
     </div>
 
+
+    <!-- MOBILE PANELS / DRAWER CONTROLS -->
+    <button class="mobile-panel-toggle protected-ui-icon mobile-left-toggle" id="mobileLeftToggle"
+            type="button" aria-label="Открыть панель профилей"
+            aria-controls="mobileLeftPanel" aria-expanded="false"
+            onclick="toggleMobilePanel('left')">☰</button>
+
+    <button class="mobile-panel-toggle protected-ui-icon mobile-right-toggle" id="mobileRightToggle"
+            type="button" aria-label="Открыть панель инструментов"
+            aria-controls="mobileRightPanel" aria-expanded="false"
+            onclick="toggleMobilePanel('right')">⚙</button>
+
+    <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop"
+         onclick="closeMobilePanels()" aria-hidden="true"></div>
+
     <!-- КОНТЕЙНЕР ПРИЛОЖЕНИЯ -->
     <div class="app-container">
       <!-- БОКОВАЯ ПАНЕЛЬ -->
-      <div class="sidebar">
+      <div class="sidebar mobile-drawer-left" id="mobileLeftPanel">
+        <button class="mobile-drawer-close" id="mobileLeftClose" type="button"
+                aria-label="Закрыть панель" onclick="closeMobilePanels()">×</button>
         <div class="sidebar-header">
           <h1>📋 Менеджер</h1>
           <div class="user-info">
@@ -2311,7 +2597,9 @@
       </div>
 
       <!-- ОСНОВНОЕ СОДЕРЖИМОЕ -->
-      <div class="main-content">
+      <div class="main-content mobile-main-content" id="mobileMainContent">
+        <button class="mobile-drawer-close mobile-right-close" id="mobileRightClose" type="button"
+                aria-label="Закрыть панель" onclick="closeMobilePanels()">×</button>
         <div class="controls">
           <!-- РАЗМЕР ИМЕНИ -->
           <div class="control-group">
@@ -2562,6 +2850,7 @@
     }
 
     function toggleShortcuts() {
+      if (!isA4UIReady()) return;
       document.getElementById('shortcutsOverlay').classList.toggle('show');
     }
 
@@ -2572,6 +2861,7 @@
     });
 
     window.addEventListener('keydown', (e) => {
+      if (!isA4UIReady()) return;
       if (e.key === '?') {
         toggleShortcuts();
       }
@@ -3033,6 +3323,7 @@
       const landingPage = document.getElementById('landingPage');
       const appPage = document.getElementById('appPage');
       if (page === 'landing') {
+        setA4UIReady(false);
         landingPage.style.display = 'block';
         appPage.classList.remove('show');
         document.querySelector('[data-page="landing"]').classList.add('active');
@@ -3040,6 +3331,7 @@
       } else if (page === 'app') {
         landingPage.style.display = 'none';
         appPage.classList.add('show');
+        setA4UIReady(authState.isLoggedIn && !!document.getElementById('page'));
         document.querySelector('[data-page="landing"]').classList.remove('active');
         document.querySelector('[data-page="app"]').classList.add('active');
       }
@@ -3072,6 +3364,7 @@
     }
 
     function toggleAdminSettings() {
+      if (!isA4UIReady()) return;
       document.getElementById('adminSettingsPanel').classList.toggle('show');
     }
 
@@ -3487,6 +3780,7 @@
       if (confirm('Выйти?')) {
         authState = { currentUser: null, isLoggedIn: false, isAdmin: false };
         appState = { allProfiles: [], currentProfileId: null, batchSelectedProfiles: new Set() };
+        setA4UIReady(false);
         document.getElementById('loginScreen').classList.remove('hidden');
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
@@ -3534,6 +3828,7 @@
     }
 
     function initializeApp() {
+      setA4UIReady(false);
       initializeCountries();
       loadProfiles();
       updateStorageInfo();
@@ -3615,6 +3910,7 @@
     }
 
     function displayEmptyState() {
+      setA4UIReady(false);
       document.getElementById('documentArea').innerHTML = `
         <div class="empty-state">
           <div class="empty-state-content">
@@ -3689,6 +3985,9 @@
           </div>
         `;
         
+        // La fiche A4 vient d'être créée dans le DOM : on déverrouille les icônes.
+        setA4UIReady(true);
+
         document.getElementById('nameSize').value = appState.sizes.name;
         document.getElementById('nameSizeDisplay').textContent = appState.sizes.name + 'px';
         
@@ -3877,8 +4176,91 @@
       document.getElementById(modalId).classList.remove('show');
     }
 
+
+    // ===== VISIBILITÉ APRÈS AUTHENTIFICATION + AFFICHAGE A4 =====
+    function setA4UIReady(ready) {
+      const isReady = !!ready &&
+                      !!authState.isLoggedIn &&
+                      !!document.getElementById('page');
+
+      document.body.classList.toggle('a4-ui-ready', isReady);
+
+      if (!isReady) {
+        const shortcuts = document.getElementById('shortcutsOverlay');
+        if (shortcuts) shortcuts.classList.remove('show');
+        setMobilePanelState(false, false);
+      }
+    }
+
+    function isA4UIReady() {
+      return authState.isLoggedIn && !!document.getElementById('page');
+    }
+
+    // ===== PANNEAUX MOBILES : TIROIRS GAUCHE / DROITE =====
+    function isMobileLayout() {
+      return window.matchMedia('(max-width: 767px)').matches;
+    }
+
+    function setMobilePanelState(leftOpen, rightOpen) {
+      const leftPanel = document.getElementById('mobileLeftPanel');
+      const mainContent = document.getElementById('mobileMainContent');
+      const leftToggle = document.getElementById('mobileLeftToggle');
+      const rightToggle = document.getElementById('mobileRightToggle');
+
+      if (!leftPanel || !mainContent) return;
+
+      const finalLeft = !!leftOpen && isMobileLayout();
+      const finalRight = !!rightOpen && isMobileLayout();
+
+      leftPanel.classList.toggle('mobile-drawer-open', finalLeft);
+      mainContent.classList.toggle('mobile-right-open', finalRight);
+
+      document.body.classList.toggle('mobile-panels-open', finalLeft || finalRight);
+
+      if (leftToggle) {
+        leftToggle.setAttribute('aria-expanded', String(finalLeft));
+      }
+      if (rightToggle) {
+        rightToggle.setAttribute('aria-expanded', String(finalRight));
+      }
+    }
+
+    function toggleMobilePanel(side) {
+      if (!isA4UIReady()) return;
+      if (!isMobileLayout()) return;
+
+      const leftPanel = document.getElementById('mobileLeftPanel');
+      const mainContent = document.getElementById('mobileMainContent');
+
+      if (side === 'left') {
+        const open = !leftPanel.classList.contains('mobile-drawer-open');
+        setMobilePanelState(open, false);
+      } else if (side === 'right') {
+        const open = !mainContent.classList.contains('mobile-right-open');
+        setMobilePanelState(false, open);
+      }
+    }
+
+    function closeMobilePanels() {
+      setMobilePanelState(false, false);
+    }
+
+    // Fermer avec Échap et remettre automatiquement le mode ordinateur
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeMobilePanels();
+      }
+    });
+
+    window.addEventListener('resize', function() {
+      if (!isMobileLayout()) {
+        closeMobilePanels();
+      }
+    });
+
     // СОЧЕТАНИЯ КЛАВИШ
     document.addEventListener('keydown', function(event) {
+      if (!isA4UIReady()) return;
       if (event.ctrlKey && event.key === 'p') {
         event.preventDefault();
         printWithName();
@@ -3899,6 +4281,17 @@
         event.preventDefault();
         toggleAdminSettings();
       }
+    });
+
+
+    // Initialisation mobile : panneaux fermés, A4 immédiatement disponible.
+    document.addEventListener('DOMContentLoaded', function() {
+      closeMobilePanels();
+
+      // Empêche le zoom involontaire sur les boutons de tiroir sur certains mobiles.
+      document.querySelectorAll('.mobile-panel-toggle, .mobile-drawer-close').forEach(btn => {
+        btn.addEventListener('touchstart', function() {}, { passive: true });
+      });
     });
 
     window.addEventListener('load', function() {
