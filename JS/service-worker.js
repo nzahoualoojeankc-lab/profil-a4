@@ -1,0 +1,98 @@
+const CACHE_NAME = 'profili-a4-v15';
+const PRECACHE_URLS = [
+  './',
+  './index.html',
+  './HTML/index.html',
+  './HTML/app.html',
+  './HTML/offline.html',
+  './manifest.json',
+  './JS/i18n.js',
+  './JS/main.js',
+  './JS/pwa.js',
+  './JS/app-init.js',
+  './JS/app.js',
+  './JS/app-events.js',
+  './JS/notifications.js',
+  './JS/documents.js',
+  './JS/supabase-config.js',
+  './CSS/style.css',
+  './CSS/app.css',
+  './images/logo.png',
+  './images/hero.png',
+  './images/pwa-icon-192.png',
+  './images/pwa-icon-512.png',
+  './images/pwa-icon-180.png',
+  './images/pwa-maskable-192.png',
+  './images/pwa-maskable-512.png',
+  './images/favicon/favicon.ico',
+];
+const PRECACHE_PATHS = new Set(PRECACHE_URLS.map(path => new URL(path, self.location).pathname));
+const APP_ROUTES = new Set([
+  './',
+  './index.html',
+  './HTML/index.html',
+  './HTML/app.html'
+].map(path => new URL(path, self.location).pathname));
+const OFFLINE_URL = new URL('./HTML/offline.html', self.location).href;
+
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(PRECACHE_URLS);
+    await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting());
+  }
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => Promise.all(
+      cacheNames
+        .filter(cacheName => cacheName.startsWith('profili-a4-') && cacheName !== CACHE_NAME)
+        .map(cacheName => caches.delete(cacheName))
+    ))
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request);
+        if (response.ok && APP_ROUTES.has(url.pathname)) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      } catch {
+        const cachedPage = await caches.match(request, { ignoreSearch: true });
+        if (cachedPage) return cachedPage;
+        const offlinePage = await caches.match(OFFLINE_URL);
+        return offlinePage || Response.error();
+      }
+    })());
+    return;
+  }
+
+  if (!PRECACHE_PATHS.has(url.pathname)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cacheKey = new Request(url.origin + url.pathname);
+    const cachedResponse = await cache.match(cacheKey);
+    if (cachedResponse) return cachedResponse;
+
+    const response = await fetch(request);
+    if (response.ok) await cache.put(cacheKey, response.clone());
+    return response;
+  })());
+});

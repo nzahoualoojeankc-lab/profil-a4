@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Profili A4 - Gestionnaire de profils professionnel">
+    <meta name="theme-color" content="#159b63">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Profili A4">
+    <title>Profili A4 - Gestion de Profils</title>
+    <link rel="icon" href="../images/favicon/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="192x192" href="../images/pwa-icon-192.png">
+    <link rel="apple-touch-icon" href="../images/pwa-icon-180.png">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../CSS/style.css">
+    <link rel="stylesheet" href="../CSS/app.css">
+    <script src="../JS/i18n.js"></script>
+    <script src="../JS/pwa.js" defer></script>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <img src="../images/logo.png" alt="Logo" class="logo-img">
+                <span>Profili A4</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#accueil">Accueil</a></li>
+                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="app.html" class="btn-app">Accéder à l'App</a></li>
+                <li class="pwa-install-item" hidden>
+                    <button type="button" class="pwa-install-button" hidden>Installer l’application</button>
+                </li>
+                <li class="public-language-picker">
+                    <button type="button" class="public-language-toggle" data-language-toggle="public" aria-expanded="false" aria-label="Langue">Langue</button>
+                    <div class="public-language-menu" data-language-menu="public" hidden>
+                        <button type="button" data-language-choice="ru">Русский</button>
+                        <button type="button" data-language-choice="en">English</button>
+                        <button type="button" data-language-choice="fr">Français</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="accueil" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 data-i18n-composite="publicHero">Gestion de Profils <span class="highlight">Professionelle</span></h1>
+                <p>Organisez vos profils, imprimez en A4 et synchronisez vos données après connexion à votre compte. Une connexion Internet est requise.</p>
+                <div class="cta-buttons">
+                    <a href="app.html" class="btn btn-primary">Essayer Maintenant</a>
+                    <a href="#features" class="btn btn-secondary">En Savoir Plus</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="../images/hero.png" alt="App Preview">
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Nos Fonctionnalités</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Gestion Complète</h3>
+                    <p>Créez, modifiez, supprimez et organisez vos profils facilement</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖨️</div>
+                    <h3>Impression A4</h3>
+                    <p>Imprimez vos profils en format A4 professionnel</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Multi-Appareils</h3>
+                    <p>Accédez depuis desktop, tablette ou mobile</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Multilingue</h3>
+                    <p>Russe, Anglais, Français et plus</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Synchronisation privée</h3>
+                    <p>Retrouvez vos profils après connexion à votre compte sur vos appareils</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Sécurisé</h3>
+                    <p>Vos profils sont protégés par les règles d'accès de votre compte</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Nous Contacter</h2>
+            <p class="section-subtitle">Choisissez le moyen de contact qui vous convient.</p>
+            <div class="contact-methods">
+                <a class="contact-method" href="mailto:nzahoualoojeankc@gmail.com">nzahoualoojeankc@gmail.com</a>
+                <a class="contact-method" href="tel:+79969810135">+7 (996) 981-01-35</a>
+                <a class="contact-method" href="https://t.me/jeankc" target="_blank" rel="noopener noreferrer">Telegram : @jeankc</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Profili A4. Tous droits réservés.</p>
+            <ul class="footer-links">
+                <li><a href="#mentions">Mentions légales</a></li>
+                <li><a href="#confidentialite">Confidentialité</a></li>
+                <li><a href="#conditions">Conditions d'utilisation</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script src="../JS/main.js"></script>
+
+</body>
+</html>

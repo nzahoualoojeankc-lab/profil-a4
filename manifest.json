@@ -1,0 +1,42 @@
+{
+  "id": "./HTML/index.html",
+  "name": "Profili A4 - Gestion de profils",
+  "short_name": "Profili A4",
+  "description": "Créez, personnalisez et imprimez des profils et documents A4.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./HTML/index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#159b63",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "./images/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/pwa-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./images/pwa-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

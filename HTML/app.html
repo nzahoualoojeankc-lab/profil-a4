@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профили A4 - Полная платформа</title>
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="../images/pwa-icon-192.png">
+  <link rel="apple-touch-icon" href="../images/pwa-icon-180.png">
+  <meta name="theme-color" content="#159b63">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Profili A4">
+  <link rel="stylesheet" href="../CSS/app.css">
+  <script src="../JS/i18n.js"></script>
+  <script src="../JS/pwa.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../JS/supabase-config.js" defer></script>
+
+  <script src="../JS/main.js" defer></script>
+</head>
+
+<body>
+
+  <script src="../JS/app-init.js"></script>
+
+  <!-- ВЕРХНИЙ ЗАГОЛОВОК -->
+  <div class="top-header">
+    <div class="top-header-left">
+      <div class="logo-text">📋 Профили A4</div>
+      <ul class="nav-tabs" id="navTabs">
+        <button class="nav-btn active" data-page="landing">Главная</button>
+        <button class="nav-btn" data-page="app">Приложение</button>
+      </ul>
+    </div>
+    <div class="top-header-right">
+      <button type="button" class="pwa-install-button" hidden>Installer l’application</button>
+      <button type="button" class="account-notifications-button" id="accountNotificationsButton"
+              data-handler-click="h78" aria-expanded="false" aria-label="Уведомления" hidden>
+        🔔 <span>Уведомления</span><span class="notification-count" id="accountNotificationCount" hidden></span>
+      </button>
+      <div class="language-picker">
+        <button type="button" class="language-toggle" data-language-toggle="app" aria-expanded="false" aria-label="Язык">Язык</button>
+        <div class="language-menu" data-language-menu="app" hidden>
+          <button type="button" data-language-choice="ru">Русский</button>
+          <button type="button" data-language-choice="en">English</button>
+          <button type="button" data-language-choice="fr">Français</button>
+        </div>
+      </div>
+      <div class="user-badge" id="userBadge">Посетитель</div>
+      <button class="admin-settings-btn protected-ui-icon" data-handler-click="h4" title="Настройки профиля">⚙️</button>
+      <button class="admin-settings-btn protected-ui-icon shortcut-key-button" data-handler-click="h5" title="Сочетания клавиш">⌨️</button>
+    </div>
+  </div>
+
+  <section class="account-notification-panel" id="accountNotificationPanel" aria-label="Уведомления" hidden>
+    <header>
+      <h2>Уведомления</h2>
+      <button type="button" class="secondary" data-handler-click="h78" aria-label="Закрыть">×</button>
+    </header>
+    <p class="notification-email-hint">Lorsqu’une notification indique qu’un e-mail a été transmis, vérifiez la boîte liée au compte et les courriers indésirables.</p>
+    <p id="accountNotificationEmail" class="notification-account-email"></p>
+    <button type="button" class="secondary" id="accountNotificationsMarkAll" data-handler-click="h79" hidden>
+      Отметить все как прочитанные
+    </button>
+    <p id="accountNotificationFeedback" class="account-admin-feedback" role="status" aria-live="polite"></p>
+    <ol id="accountNotificationList" class="account-notification-list"></ol>
+  </section>
+
+  <!-- НАЛОЖЕНИЕ СОЧЕТАНИЙ КЛАВИШ -->
+  <div class="shortcuts-overlay" id="shortcutsOverlay">
+    <h3>⌨️ Сочетания клавиш</h3>
+    <div class="shortcut-item">
+      <span>Печать</span>
+      <span class="shortcut-key">Ctrl + P</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Сохранить</span>
+      <span class="shortcut-key">Ctrl + S</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Новый профиль</span>
+      <span class="shortcut-key">Ctrl + N</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Печать в цепочку</span>
+      <span class="shortcut-key">Ctrl + E</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Настройки профиля</span>
+      <span class="shortcut-key">Ctrl + O</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Показать сочетания</span>
+      <span class="shortcut-key">?</span>
+    </div>
+  </div>
+
+  <!-- ЛИЧНЫЕ НАСТРОЙКИ -->
+  <div class="admin-settings-panel" id="adminSettingsPanel">
+    <div class="admin-settings-header">
+      <h2>⚙️ Настройки профиля</h2>
+      <button class="close-settings" data-handler-click="h4">×</button>
+    </div>
+
+    <!-- ВКЛАДКИ -->
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" data-tab="photos" data-handler-click="h6">📸 Фото</button>
+      <button class="admin-tab-btn" data-tab="colors" data-handler-click="h7">🎨 Цвета</button>
+      <button class="admin-tab-btn" data-tab="fonts" data-handler-click="h8">✏️ Шрифты</button>
+      <button class="admin-tab-btn" data-tab="settings" data-handler-click="h9">🔧 Параметры</button>
+      <button class="admin-tab-btn" data-tab="language" data-handler-click="h60">🌐 Язык</button>
+    </div>
+
+    <div class="admin-settings-content">
+      <!-- ВКЛАДКА 1: ФОТО -->
+      <div id="photos-tab" class="admin-tab-content show">
+        <div class="settings-section">
+          <h3>📸 Фотографии по умолчанию</h3>
+          
+          <div class="default-photos-container">
+            <!-- ФОТО МУЖЧИНЫ -->
+            <div class="settings-item">
+              <label>Фото мужчины</label>
+              <div class="photo-preview">
+                <img id="photoMale" src="https://via.placeholder.com/150?text=Male" alt="Male">
+                <div class="photo-preview-label">Мужчина</div>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" data-handler-change="h10" class="photo-upload-input">
+            </div>
+
+            <!-- ФОТО ЖЕНЩИНЫ -->
+            <div class="settings-item">
+              <label>Фото женщины</label>
+              <div class="photo-preview">
+                <img id="photoFemale" src="https://via.placeholder.com/150?text=Female" alt="Female">
+                <div class="photo-preview-label">Женщина</div>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" data-handler-change="h11" class="photo-upload-input">
+            </div>
+
+            <!-- ФОТО ДРУГОЕ -->
+            <div class="settings-item">
+              <label>Фото не указано</label>
+              <div class="photo-preview">
+                <img id="photoOther" src="https://via.placeholder.com/150?text=Other" alt="Other">
+                <div class="photo-preview-label">Не указано</div>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" data-handler-change="h12" class="photo-upload-input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ВКЛАДКА 2: ЦВЕТА -->
+      <div id="colors-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>🎨 Пользовательские цвета</h3>
+          
+          <div class="settings-item">
+            <label>🔄 Режим приложения</label>
+            <select id="colorModeSelect" data-handler-change="h13">
+              <option value="global">Глобальные параметры</option>
+              <option value="profile">Текущий профиль</option>
+            </select>
+          </div>
+
+          <div class="color-grid">
+            <div class="color-control">
+              <label>Цвет текста</label>
+              <input type="color" id="textColorAdmin" value="#333333" data-handler-change="h14">
+            </div>
+
+            <div class="color-control">
+              <label>Зеленый цвет</label>
+              <input type="color" id="greenColorAdmin" value="#159b63" data-handler-change="h14">
+            </div>
+
+            <div class="color-control">
+              <label>Красный цвет</label>
+              <input type="color" id="redColorAdmin" value="#d72626" data-handler-change="h14">
+            </div>
+
+            <div class="color-control">
+              <label>Цвет фона карты</label>
+              <input type="color" id="cardBgColorAdmin" value="#ffffff" data-handler-change="h14">
+            </div>
+
+            <div class="color-control">
+              <label>Цвет границы фото</label>
+              <input type="color" id="photoBorderColorAdmin" value="#b40000" data-handler-change="h14">
+            </div>
+
+            <div class="color-control">
+              <label>Цвет фона итога</label>
+              <input type="color" id="totalBoxBgColorAdmin" value="#eef4fb" data-handler-change="h14">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ВКЛАДКА 3: ШРИФТЫ -->
+      <div id="fonts-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>✏️ Шрифты</h3>
+          
+          <div class="settings-item">
+            <label>🔤 Семейство шрифтов</label>
+            <select id="fontFamilySelect" data-handler-change="h15">
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Comic Sans MS">Comic Sans MS</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Arial Black">Arial Black</option>
+            </select>
+          </div>
+          
+          <div class="info-box">
+            ✅ Шрифт применяется ко всему содержимому документа
+          </div>
+        </div>
+      </div>
+
+      <!-- ВКЛАДКА 4: ПАРАМЕТРЫ -->
+      <div id="settings-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>🔧 Действия</h3>
+          <div class="settings-item">
+            <button data-handler-click="h16" class="danger">🔄 Сбросить цвета</button>
+          </div>
+          <div class="settings-item">
+            <button data-handler-click="h17" class="secondary">💾 Экспортировать параметры</button>
+          </div>
+          <div class="settings-item">
+            <button data-handler-click="h18" class="secondary">📂 Импортировать параметры</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>📊 База данных</h3>
+          <div class="info-box">
+            <strong>Ваши профили:</strong> <span id="totalProfiles">0</span><br>
+            <strong>Использованное пространство:</strong> <span id="dbSize">0 MB</span>
+          </div>
+          <div class="settings-item">
+            <button data-handler-click="h19">💾 Экспорт профилей</button>
+          </div>
+          <div class="settings-item">
+            <input id="profileImportInput" type="file" accept="application/json,.json" hidden data-handler-change="h20">
+            <button data-handler-click="h21">📂 Импорт локальной копии</button>
+          </div>
+        </div>
+
+        <div class="settings-section account-moderation-section" id="accountModerationSection" hidden>
+          <h3>🛡️ Administration des comptes</h3>
+          <p>Les suspensions sont réversibles, motivées et journalisées. Aucune suppression définitive n’est proposée.</p>
+          <div class="settings-item">
+            <label for="accountSearchInput">Rechercher un compte par e-mail</label>
+            <div class="account-search-row">
+              <input id="accountSearchInput" type="search" autocomplete="off" placeholder="Au moins 3 caractères">
+              <button type="button" class="secondary" data-handler-click="h64">Rechercher</button>
+            </div>
+          </div>
+          <p class="account-admin-feedback" id="accountAdminFeedback" role="status" aria-live="polite"></p>
+          <div id="accountSearchResults" class="account-search-results" data-i18n-ignore="true"></div>
+          <div id="selectedAccountPanel" class="selected-account-panel" hidden>
+            <strong id="selectedAccountLabel" data-i18n-ignore="true"></strong>
+            <p id="selectedAccountStatus"></p>
+            <div class="settings-item">
+              <label for="moderationReason">Motif obligatoire</label>
+              <textarea id="moderationReason" maxlength="2000" rows="3"></textarea>
+            </div>
+            <div class="account-action-row">
+              <button type="button" class="danger" id="suspendAccountButton" data-handler-click="h65">Suspendre</button>
+              <button type="button" class="secondary" id="reactivateAccountButton" data-handler-click="h66">Réactiver</button>
+              <span id="accountDelegationSection">
+                <button type="button" class="secondary" id="grantModeratorButton" data-handler-click="h67" hidden>Déléguer l’administration</button>
+                <button type="button" class="danger" id="revokeModeratorButton" data-handler-click="h68" hidden>Révoquer la délégation</button>
+              </span>
+            </div>
+            <section class="account-billing-section" id="accountBillingSection">
+              <h4>Échéances et paiements</h4>
+              <p>Pour chaque période, saisissez le montant, la devise et la date d’échéance. Les rappels commencent après 3 jours de retard, puis sont répétés tous les 3 jours jusqu’à confirmation.</p>
+              <div class="settings-item">
+                <label for="paymentPeriod">Période mensuelle</label>
+                <input id="paymentPeriod" type="month">
+              </div>
+              <div class="settings-item payment-entry-row">
+                <div>
+                  <label for="paymentAmount">Montant</label>
+                  <input id="paymentAmount" type="number" min="0.01" step="0.01" inputmode="decimal">
+                </div>
+                <div>
+                  <label for="paymentCurrency">Devise (code à 3 lettres)</label>
+                  <input id="paymentCurrency" type="text" maxlength="3" autocomplete="off" placeholder="EUR">
+                </div>
+              </div>
+              <div class="settings-item">
+                <label for="paymentDueDate">Date d’échéance</label>
+                <input id="paymentDueDate" type="date">
+              </div>
+              <div class="settings-item">
+                <label for="paymentReason">Motif de la modification ou confirmation</label>
+                <textarea id="paymentReason" maxlength="2000" rows="2"></textarea>
+              </div>
+              <div class="account-action-row">
+                <button type="button" class="secondary" data-handler-click="h72">Enregistrer l’échéance</button>
+                <button type="button" class="secondary" data-handler-click="h75">Actualiser les paiements</button>
+              </div>
+              <p class="account-admin-feedback" id="paymentFeedback" role="status" aria-live="polite"></p>
+              <h5>Paiements enregistrés</h5>
+              <ul class="account-payment-list" id="paymentDueList" data-i18n-ignore="true"></ul>
+              <h5>Journal des paiements</h5>
+              <ol class="account-payment-audit" id="paymentAuditList" data-i18n-ignore="true"></ol>
+            </section>
+          </div>
+          <div id="accountAuditSection" class="account-audit-section">
+            <h4>Journal des actions</h4>
+            <ol id="accountAuditList" data-i18n-ignore="true"></ol>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="language-tab" class="admin-tab-content">
+        <div class="settings-section">
+          <h3>🌐 Язык</h3>
+          <div class="settings-item">
+            <label for="languageSettingSelect">Язык интерфейса</label>
+            <select id="languageSettingSelect" data-language-select data-handler-change="h61">
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПОСАДОЧНАЯ СТРАНИЦА -->
+  <div class="landing-page" id="landingPage">
+    <section class="hero">
+      <h1>Профессиональное управление профилями A4</h1>
+      <p>Создавайте профили A4 и синхронизируйте их между устройствами после входа в аккаунт.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" data-handler-click="h22">Начать</button>
+        <button class="btn-secondary" data-handler-click="h23">Узнать больше</button>
+      </div>
+    </section>
+
+    <section class="features-section" id="featuresSection">
+      <h2 class="section-title">Наши функции</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>Легкое создание</h3>
+          <p>Создавайте профили A4 в несколько кликов.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h3>Автосохранение</h3>
+          <p>Все ваши профили автоматически сохраняются.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h3>Облачная синхронизация</h3>
+          <p>Ваши профили доступны после входа и синхронизируются между устройствами.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>Типография</h3>
+          <p>Персонализируйте шрифты и внешний вид.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📸</div>
+          <h3>Управление изображениями</h3>
+          <p>Импортируйте изображения в свои профили.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖨️</div>
+          <h3>Печать в цепочку</h3>
+          <p>Печатайте несколько профилей автоматически.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <p>&copy; 2024 Профили A4. Все права защищены.</p>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА ПРИЛОЖЕНИЯ -->
+  <div class="app-page" id="appPage">
+    <!-- ЭКРАН ВХОДА -->
+    <div class="login-screen" id="loginScreen">
+      <div class="login-container">
+        <div class="login-header">
+          <h1>📋 Профили A4</h1>
+          <p>Профессиональное управление профилями</p>
+          <p id="supabaseConfigStatus" class="login-error" role="alert" hidden></p>
+        </div>
+
+        <div class="login-form" id="loginFormMain">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" autocomplete="email" placeholder="your@email.com" data-handler-keypress="h24">
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Пароль</label>
+            <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••" data-handler-keypress="h24">
+          </div>
+
+          <button class="login-button" data-handler-click="h25">Войти</button>
+          <button class="login-button password-recovery-button" type="button" data-handler-click="h26">Забыли пароль?</button>
+
+          <div class="login-error" id="loginError"></div>
+
+          <div class="login-divider">или</div>
+
+          <div class="register-link">
+            <span>Нет аккаунта?</span> <a data-handler-click="h27">Зарегистрироваться</a>
+          </div>
+
+        </div>
+
+        <!-- ФОРМА РЕГИСТРАЦИИ -->
+        <div class="login-form hidden" id="registerForm">
+          <div class="form-group">
+            <label>Полное имя</label>
+            <input type="text" id="regName" placeholder="Ваше имя">
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="your@email.com">
+          </div>
+
+          <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="regPassword" placeholder="••••••••">
+          </div>
+
+          <div class="form-group">
+            <label>Подтвердить пароль</label>
+            <input type="password" id="regPassword2" placeholder="••••••••">
+          </div>
+
+          <div class="terms-box" data-i18n-ignore="true">
+            <strong id="signupTermsTitle">Conditions générales d’utilisation v1.0</strong>
+            <p id="signupTermsContent">En créant ou en utilisant votre compte, vous vous engagez à respecter les règles d’utilisation de l’application et vos obligations de paiement lorsqu’elles sont convenues. Le propriétaire de l’application ou les administrateurs qu’il a désignés peuvent suspendre temporairement l’accès à votre compte en cas de non-respect du contrat, notamment en cas d’échéance impayée, de fraude ou de manquement éthique. La suspension conserve vos données, indique un motif et vous permet de présenter un recours. La suppression définitive du compte n’est pas régie par cette version et ne sera pas effectuée par cette fonctionnalité.</p>
+          </div>
+          <p class="terms-language-note">Le texte des conditions suit la langue choisie dans l’application.</p>
+          <label class="terms-consent" for="acceptSignupTerms">
+            <input type="checkbox" id="acceptSignupTerms" data-handler-change="h71">
+            <span>J’accepte les Conditions générales d’utilisation v1.0.</span>
+          </label>
+
+          <button class="login-button" data-handler-click="h28">Зарегистрироваться</button>
+
+          <div class="login-error" id="registerError"></div>
+
+          <div class="register-link">
+            <span>Уже зарегистрированы?</span> <a data-handler-click="h27">Войти</a>
+          </div>
+        </div>
+
+        <div class="login-form hidden" id="passwordRecoveryForm">
+          <div class="form-group">
+            <label for="recoveryEmail">Email</label>
+            <input type="email" id="recoveryEmail" autocomplete="email" placeholder="your@email.com">
+          </div>
+          <button class="login-button" data-handler-click="h29">Отправить ссылку для сброса</button>
+          <div class="login-error" id="recoveryError" role="status"></div>
+          <div class="register-link"><a data-handler-click="h30">Вернуться ко входу</a></div>
+        </div>
+
+        <div class="login-form hidden" id="passwordUpdateForm">
+          <div class="form-group">
+            <label for="newPassword">Новый пароль</label>
+            <input type="password" id="newPassword" autocomplete="new-password" minlength="6">
+          </div>
+          <div class="form-group">
+            <label for="newPasswordConfirm">Повторите пароль</label>
+            <input type="password" id="newPasswordConfirm" autocomplete="new-password" minlength="6">
+          </div>
+          <button class="login-button" data-handler-click="h31">Сохранить новый пароль</button>
+          <div class="login-error" id="passwordUpdateError" role="status"></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="account-access-gate hidden" id="accountAccessGate" aria-live="polite">
+      <div class="account-access-card" id="accountTermsPanel" hidden>
+        <h2>Conditions générales d’utilisation</h2>
+        <p>Une nouvelle acceptation est nécessaire pour accéder à vos profils.</p>
+        <strong id="accountTermsVersion"></strong>
+        <div class="terms-box" id="accountTermsContent" data-i18n-ignore="true"></div>
+        <p class="terms-language-note">Le texte des conditions suit la langue choisie dans l’application.</p>
+        <label class="terms-consent" for="acceptAccountTerms">
+          <input type="checkbox" id="acceptAccountTerms" data-handler-change="h71">
+          <span>J’accepte les Conditions générales d’utilisation.</span>
+        </label>
+        <p class="login-error" id="accountTermsError" role="alert" hidden></p>
+        <button class="login-button" id="acceptAccountTermsButton" data-handler-click="h63" disabled>Accepter et continuer</button>
+        <button class="login-button secondary" data-handler-click="h40">Выйти из аккаунта</button>
+      </div>
+      <div class="account-access-card" id="accountSuspensionPanel" hidden>
+        <h2>Compte suspendu</h2>
+        <p>Votre accès aux profils est suspendu. Vos données sont conservées.</p>
+        <h3>Motif communiqué</h3>
+        <p id="accountSuspensionReason" data-i18n-ignore="true"></p>
+        <p>Vous pouvez demander un réexamen de cette décision.</p>
+        <a id="accountAppealLink" href="mailto:nzahoualoojeankc@gmail.com">Contacter l’équipe pour exercer un recours</a>
+        <button class="login-button secondary" data-handler-click="h70">Vérifier à nouveau</button>
+        <button class="login-button secondary" data-handler-click="h40">Выйти из аккаунта</button>
+      </div>
+      <div class="account-access-card" id="accountStatusErrorPanel" hidden>
+        <h2>Vérification du compte indisponible</h2>
+        <p id="accountStatusErrorText" role="alert" data-i18n-ignore="true"></p>
+        <button class="login-button" data-handler-click="h70">Réessayer</button>
+        <button class="login-button secondary" data-handler-click="h40">Выйти из аккаунта</button>
+      </div>
+    </section>
+
+    <!-- MOBILE PANELS / DRAWER CONTROLS -->
+    <button class="mobile-panel-toggle protected-ui-icon mobile-left-toggle" id="mobileLeftToggle"
+            type="button" aria-label="Открыть панель профилей"
+            aria-controls="mobileLeftPanel" aria-expanded="false"
+            data-handler-click="h32">☰</button>
+
+    <button class="mobile-panel-toggle protected-ui-icon mobile-right-toggle" id="mobileRightToggle"
+            type="button" aria-label="Открыть панель инструментов"
+            aria-controls="mobileRightPanel" aria-expanded="false"
+            data-handler-click="h33">⚙</button>
+
+    <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop"
+         data-handler-click="h34" aria-hidden="true"></div>
+
+    <!-- КОНТЕЙНЕР ПРИЛОЖЕНИЯ -->
+    <div class="app-container">
+      <!-- БОКОВАЯ ПАНЕЛЬ -->
+      <div class="sidebar mobile-drawer-left" id="mobileLeftPanel">
+        <button class="mobile-drawer-close" id="mobileLeftClose" type="button"
+                aria-label="Закрыть панель" data-handler-click="h34">×</button>
+        <div class="sidebar-header">
+          <h1>📋 Менеджер</h1>
+          <div class="user-info">
+            <span>Пользователь:</span> <strong id="currentUser">Гость</strong>
+            <span id="syncStatusText" role="status" aria-live="polite">Ожидание подключения</span>
+          </div>
+
+          <div class="storage-info">
+            <div class="storage-bar">
+              <div class="storage-fill" id="storageFill"></div>
+            </div>
+            <div class="photo-size-row">
+              <span>Данные профилей (без фото)</span>
+              <span id="storageUsed">0 MB</span>
+            </div>
+          </div>
+
+          <div class="profile-capacity">
+            <h3>📊 ЕМКОСТЬ</h3>
+            <div class="capacity-item">
+              <span>Создано</span>
+              <span class="capacity-value good" id="profilesCreated">0</span>
+            </div>
+            <div class="capacity-item">
+              <span>Осталось</span>
+              <span class="capacity-value" id="profilesRemaining">300</span>
+            </div>
+            <div class="capacity-item">
+              <span>Использование</span>
+              <span class="capacity-value" id="percentageUsed">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-box" id="searchBox">
+          <input type="text" id="searchInput" placeholder="Поиск..." data-handler-keyup="h35">
+        </div>
+
+        <div class="profiles-list empty" id="profilesList">
+          <span>Нет профилей</span>
+        </div>
+
+        <div class="sidebar-footer">
+          <button class="btn-new" data-handler-click="h36">➕ Новое</button>
+          <button class="btn-batch-export initially-hidden" id="btnBatchExport" data-handler-click="h37">🖨️ Цепочка</button>
+          <button class="btn-export" data-handler-click="h19">💾 Экспорт</button>
+          <button class="btn-delete initially-hidden" id="btnDelete" data-handler-click="h38">🗑️ Удал.</button>
+          <button class="btn-reset" data-handler-click="h39">🔄 Сброс</button>
+          <button class="btn-logout" data-handler-click="h40">🚪 Выход</button>
+        </div>
+      </div>
+
+      <!-- ОСНОВНОЕ СОДЕРЖИМОЕ -->
+      <div class="main-content mobile-main-content" id="mobileMainContent">
+        <div class="account-notice-banner" id="accountNoticeBanner" hidden>
+          <strong id="accountNoticeTitle"></strong>
+          <span id="accountNoticeText" data-i18n-ignore="true"></span>
+        </div>
+        <button class="mobile-drawer-close mobile-right-close" id="mobileRightClose" type="button"
+                aria-label="Закрыть панель" data-handler-click="h34">×</button>
+        <div class="workspace-tabs" role="tablist" aria-label="Рабочие пространства">
+          <button type="button" id="profileWorkspaceTab" class="active" role="tab" aria-controls="profileWorkspace" aria-selected="true" data-handler-click="h76">
+            Профили
+          </button>
+          <button type="button" id="documentsWorkspaceTab" role="tab" aria-controls="documentsWorkspace" aria-selected="false" data-handler-click="h77">
+            Documents personnalisés
+          </button>
+        </div>
+        <div class="profile-workspace" id="profileWorkspace">
+        <div class="controls">
+          <!-- РАЗМЕР ИМЕНИ -->
+          <div class="control-group">
+            <label>📝 Имя</label>
+            <input type="range" id="nameSize" min="14" max="48" value="29" class="size-slider" data-handler-input="h41">
+            <div class="size-display" id="nameSizeDisplay">29px</div>
+          </div>
+
+          <!-- РАЗМЕР ТЕЛЕФОНА -->
+          <div class="control-group">
+            <label>☎️ Телефон</label>
+            <input type="range" id="phoneSize" min="12" max="36" value="23" class="size-slider" data-handler-input="h42">
+            <div class="size-display" id="phoneSizeDisplay">23px</div>
+          </div>
+
+          <!-- РАЗМЕР ДАТЫ -->
+          <div class="control-group">
+            <label>📅 Дата</label>
+            <input type="range" id="dateSize" min="14" max="48" value="29" class="size-slider" data-handler-input="h43">
+            <div class="size-display" id="dateSizeDisplay">29px</div>
+          </div>
+
+          <!-- РАЗМЕР СТРОКИ -->
+          <div class="control-group">
+            <label>📊 Строки</label>
+            <input type="range" id="rowSize" min="12" max="36" value="24" class="size-slider" data-handler-input="h44">
+            <div class="size-display" id="rowSizeDisplay">24px</div>
+          </div>
+
+          <!-- РАЗМЕР ИТОГА -->
+          <div class="control-group">
+            <label>💰 Итого</label>
+            <input type="range" id="totalSize" min="14" max="48" value="31" class="size-slider" data-handler-input="h45">
+            <div class="size-display" id="totalSizeDisplay">31px</div>
+          </div>
+
+          <!-- РАЗМЕР ЭТИКЕТКИ -->
+          <div class="control-group">
+            <label>🏷️ Этикетка</label>
+            <input type="range" id="labelSize" min="10" max="30" value="27" class="size-slider" data-handler-input="h46">
+            <div class="size-display" id="labelSizeDisplay">27px</div>
+          </div>
+
+          <!-- ШРИФТ -->
+          <div class="control-group">
+            <label>✏️ Шрифт</label>
+            <select id="fontSelect" data-handler-change="h47">
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Comic Sans MS">Comic Sans MS</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Arial Black">Arial Black</option>
+            </select>
+          </div>
+
+          <!-- ПОЛ -->
+          <div class="control-group">
+            <label>👤 Пол</label>
+            <select id="genderSelect" data-handler-change="h48">
+              <option value="male">Мужчина</option>
+              <option value="female">Женщина</option>
+              <option value="other">Не указано</option>
+            </select>
+          </div>
+
+          <!-- СТРАНА -->
+          <div class="control-group">
+            <label>🌍 Страна</label>
+            <select id="countrySelect" data-handler-change="h49">
+              <option value="">Выберите страну...</option>
+            </select>
+          </div>
+
+          <!-- ФОТО -->
+          <div class="control-group">
+            <label>📷 Фото</label>
+            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" data-handler-change="h50">
+          </div>
+
+          <!-- ПЕЧАТЬ -->
+          <div class="control-group">
+            <label>🖨️ Действия</label>
+            <button class="print-btn full-width-button" data-handler-click="h51">Печать</button>
+          </div>
+        </div>
+
+        <div class="document-area" id="documentArea"></div>
+        </div>
+
+        <section class="documents-workspace" id="documentsWorkspace" hidden>
+          <div class="document-toolbar">
+            <label for="documentCategory">Catégorie</label>
+            <select id="documentCategory" data-handler-change="h81">
+              <option value="payroll_report">Rapport de paie</option>
+              <option value="payroll_check">Chèque de paie imprimable</option>
+              <option value="event_badge">Badge du personnel événementiel</option>
+              <option value="event_ticket">Billet d’événement</option>
+            </select>
+            <label for="documentTemplateSelect">Modèle</label>
+            <select id="documentTemplateSelect" data-handler-change="h82">
+              <option value="">Choisir un modèle enregistré</option>
+            </select>
+            <label for="savedDocumentSelect">Document enregistré</label>
+            <select id="savedDocumentSelect" data-handler-change="h83">
+              <option value="">Choisir un document enregistré</option>
+            </select>
+            <button type="button" class="secondary" data-handler-click="h84">Nouveau document</button>
+            <button type="button" class="secondary" data-handler-click="h94">Actualiser la liste des documents</button>
+          </div>
+
+          <div class="document-editor-layout">
+            <aside class="document-editor-panel">
+              <h2>Personnaliser</h2>
+              <div class="settings-item">
+                <label for="documentTemplateName">Nom du modèle</label>
+                <input id="documentTemplateName" type="text" maxlength="120" data-handler-input="h87">
+              </div>
+              <div class="settings-item">
+                <label for="documentTitle">Titre du document</label>
+                <input id="documentTitle" type="text" maxlength="160" data-handler-input="h87">
+              </div>
+
+              <h3>Thème et mise en page</h3>
+              <div class="settings-item">
+                <label for="documentThemeSelect">Thème prédéfini</label>
+                <select id="documentThemeSelect" data-document-theme="true" data-handler-change="h87">
+                  <option value="source">Vert et bleu</option>
+                  <option value="corporate">Entreprise</option>
+                  <option value="festival">Festival</option>
+                </select>
+              </div>
+              <div class="settings-item">
+                <label for="documentOrientation">Orientation A4</label>
+                <select id="documentOrientation" data-document-design="orientation" data-handler-change="h87">
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Paysage</option>
+                </select>
+              </div>
+              <div class="settings-item">
+                <label for="documentShape">Forme</label>
+                <select id="documentShape" data-document-design="shape" data-handler-change="h87">
+                  <option value="rounded">Arrondie</option>
+                  <option value="square">Rectangulaire</option>
+                  <option value="badge">Badge</option>
+                  <option value="ticket">Billet</option>
+                </select>
+              </div>
+              <div class="document-color-grid">
+                <label>Couleur principale <input type="color" id="documentMainColor" data-document-design="main" data-handler-input="h87"></label>
+                <label>Arrière-plan <input type="color" id="documentBackgroundColor" data-document-design="background" data-handler-input="h87"></label>
+                <label>Accent <input type="color" id="documentAccentColor" data-document-design="accent" data-handler-input="h87"></label>
+                <label>Texte <input type="color" id="documentTextColor" data-document-design="text" data-handler-input="h87"></label>
+              </div>
+              <div class="settings-item">
+                <label for="documentFont">Police</label>
+                <select id="documentFont" data-document-design="font" data-handler-change="h87">
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="Verdana, sans-serif">Verdana</option>
+                </select>
+              </div>
+
+              <h3>Champs et informations</h3>
+              <div id="documentFieldDefinitions" class="document-field-definitions"></div>
+              <div class="document-add-field">
+                <input id="documentNewFieldLabel" type="text" maxlength="80" placeholder="Nom du nouveau champ">
+                <select id="documentNewFieldType">
+                  <option value="text">Texte</option>
+                  <option value="number">Nombre</option>
+                  <option value="date">Date</option>
+                </select>
+                <button type="button" class="secondary" data-handler-click="h86">Ajouter un champ</button>
+              </div>
+              <div id="documentFieldValues" class="document-field-values"></div>
+
+              <div class="document-action-buttons">
+                <button type="button" class="secondary" data-handler-click="h85">Enregistrer le modèle</button>
+                <button type="button" data-handler-click="h91">Supprimer le modèle</button>
+                <button type="button" class="secondary" data-handler-click="h90">Enregistrer le document</button>
+                <button type="button" class="danger" data-handler-click="h92">Supprimer le document</button>
+                <button type="button" class="print-btn" data-handler-click="h93">Imprimer / PDF</button>
+              </div>
+              <p id="documentFeedback" class="account-admin-feedback" role="status" aria-live="polite"></p>
+              <p class="document-safety-note">
+                Les données et modèles sont enregistrés dans le compte connecté. Le chèque est une maquette, et les billets ne sont pas validés par un service de billetterie.
+              </p>
+            </aside>
+            <div class="document-preview-shell">
+              <div id="documentPreview" class="document-preview"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛИ -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content">
+      <h2>🗑️ Удалить</h2>
+      <p id="deleteMessage">Вы уверены?</p>
+      <p class="warning-text">⚠️ Необратимо!</p>
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" data-handler-click="h52">Отмена</button>
+        <button class="modal-btn danger" data-handler-click="h53">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="resetModal">
+    <div class="modal-content">
+      <h2>🔄 Сброс</h2>
+      <p class="warning-text">⚠️ Внимание: Необратимо!</p>
+      <p><span>Вы собираетесь удалить</span> <strong id="profileCountToReset">0</strong> <span>профиль (ей).</span></p>
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" data-handler-click="h54">Отмена</button>
+        <button class="modal-btn danger" data-handler-click="h55">Удалить все</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬ ПАКЕТНОГО ЭКСПОРТА -->
+  <div class="modal" id="batchExportModal">
+    <div class="modal-content batch-selection-modal">
+      <h2>🖨️ Печать в цепочку</h2>
+      <p>Выберите профили для печати в цепочку:</p>
+      
+      <div class="batch-controls">
+        <button data-handler-click="h56">✅ Выбрать все</button>
+        <button data-handler-click="h57">❌ Отменить</button>
+      </div>
+
+      <div class="period-stats" id="periodStats">
+        <p><strong>📊 Глобальная статистика:</strong></p>
+        <p class="batch-summary-item">
+          <strong>Всего существующих профилей:</strong> <span id="totalExistingProfiles">0</span> / 300
+        </p>
+        <p class="batch-summary-item">
+          <strong>Осталось профилей:</strong> <span id="remainingProfiles">300</span>
+        </p>
+        
+        <p class="batch-section-spaced"><strong>📈 Распределение по периодам:</strong></p>
+        <div id="periodBreakdown" class="batch-summary-item">
+          <!-- Будет заполнено динамически -->
+        </div>
+
+        <p class="batch-section-spaced"><strong>📦 Текущий экспорт:</strong></p>
+        <p class="batch-summary-item">
+          <strong>Доминирующий период:</strong> <span id="dominantPeriod">-</span>
+        </p>
+        <p class="batch-summary-item">
+          <strong>Выбранные профили:</strong> <span id="selectedCount">0</span>
+        </p>
+      </div>
+
+      <div class="batch-list" id="batchList"></div>
+
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" data-handler-click="h58">Отмена</button>
+        <button class="modal-btn primary" data-handler-click="h59">🖨️ Печать в цепочку</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../JS/app.js"></script>
+  <script src="../JS/notifications.js"></script>
+  <script src="../JS/documents.js"></script>
+  <script src="../JS/app-events.js"></script>
+
+</body>
+</html>
