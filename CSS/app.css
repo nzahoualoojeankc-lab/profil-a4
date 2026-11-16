@@ -1128,8 +1128,12 @@ table tbody tr:hover {
       bottom: 0;
       background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
       z-index: 200;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
+      padding: max(16px, env(safe-area-inset-top)) 0 max(16px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     .login-screen.hidden {
@@ -1143,6 +1147,8 @@ table tbody tr:hover {
       width: 90%;
       max-width: 400px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      margin: auto;
+      flex: 0 0 auto;
     }
 
     .login-header {

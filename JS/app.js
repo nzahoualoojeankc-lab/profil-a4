@@ -1,3 +1,18 @@
+    const appHeader = document.querySelector('.top-header');
+    const loginScreen = document.getElementById('loginScreen');
+    function positionLoginScreenBelowHeader() {
+      if (!appHeader || !loginScreen) return;
+      loginScreen.style.top = `${appHeader.getBoundingClientRect().height}px`;
+    }
+
+    positionLoginScreenBelowHeader();
+    if (appHeader) {
+      if (window.ResizeObserver) {
+        new ResizeObserver(positionLoginScreenBelowHeader).observe(appHeader);
+      }
+      window.addEventListener('resize', positionLoginScreenBelowHeader);
+    }
+
     let currentLanguage = window.AppI18n.currentLanguage();
     const signupTermsSource = document.getElementById('signupTermsContent').textContent.trim();
 
