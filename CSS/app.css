@@ -2856,6 +2856,13 @@ table tbody tr:hover {
   margin-top: 8px;
 }
 
+@media (max-width: 767px) {
+  #registerForm .terms-box {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 .terms-consent {
   display: flex;
   align-items: flex-start;
