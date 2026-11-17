@@ -1,6 +1,6 @@
 begin;
 
-create table public.profile_verifications (
+create table if not exists public.profile_verifications (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   source_type text not null check (source_type in ('profile', 'document')),
@@ -19,10 +19,10 @@ create table public.profile_verifications (
   unique (owner_id, source_type, source_id)
 );
 
-create index profile_verifications_owner_created_idx
+create index if not exists profile_verifications_owner_created_idx
   on public.profile_verifications (owner_id, created_at desc);
 
-create function public.profili_a4_is_account_admin()
+create or replace function public.profili_a4_is_account_admin()
 returns boolean
 language sql
 stable
@@ -44,23 +44,50 @@ revoke all on table public.profile_verifications from public, anon, authenticate
 grant select on table public.profile_verifications to authenticated;
 grant all on table public.profile_verifications to service_role;
 
-create policy "profili_a4_profile_verifications_select"
-  on public.profile_verifications for select to authenticated
-  using (
-    (select public.profili_a4_current_account_can_use())
-    and (
-      owner_id = (select auth.uid())
-      or (select public.profili_a4_is_account_admin())
-    )
-  );
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'profile_verifications'
+      and policyname = 'profili_a4_profile_verifications_select'
+  ) then
+    execute $policy$
+      create policy "profili_a4_profile_verifications_select"
+        on public.profile_verifications for select to authenticated
+        using (
+          (select public.profili_a4_current_account_can_use())
+          and (
+            owner_id = (select auth.uid())
+            or (select public.profili_a4_is_account_admin())
+          )
+        )
+    $policy$;
+  end if;
+end
+$$;
 
-create function public.profili_a4_create_profile_verification(
+do $$
+declare
+  category_tables_present integer;
+begin
+  select count(*) into category_tables_present
+  from unnest(array[
+    'account_payroll_reports',
+    'account_payroll_checks',
+    'account_event_badges',
+    'account_event_tickets'
+  ]) as category_tables(table_name)
+  where to_regclass('public.' || category_tables.table_name) is not null;
+
+  if category_tables_present = 0 then
+    execute $function$
+      create or replace function public.profili_a4_create_profile_verification(
   p_source_type text,
   p_source_id text,
   p_valid_until date default null,
   p_placement text default 'footer'
 )
-returns table (
+      returns table (
   serial_number text,
   source_type text,
   source_id text,
@@ -72,10 +99,10 @@ returns table (
   status text,
   created_at timestamptz
 )
-language plpgsql
-security definer
-set search_path = ''
-as $$
+      language plpgsql
+      security definer
+      set search_path = ''
+      as $body$
 declare
   v_owner_id uuid := auth.uid();
   v_category text;
@@ -156,6 +183,14 @@ begin
       verification.valid_until, verification.placement, verification.status,
       verification.created_at;
 end;
+$body$;
+    $function$;
+  elsif category_tables_present < 4 then
+    raise exception 'Category document tables are incomplete; repair that migration before rerunning verification setup';
+  elsif to_regprocedure('public.profili_a4_create_profile_verification(text, text, date, text)') is null then
+    raise exception 'The category-aware verification function is missing; rerun the category storage migration';
+  end if;
+end
 $$;
 
 revoke all on function public.profili_a4_create_profile_verification(text, text, date, text)
@@ -163,7 +198,7 @@ revoke all on function public.profili_a4_create_profile_verification(text, text,
 grant execute on function public.profili_a4_create_profile_verification(text, text, date, text)
   to authenticated;
 
-create function public.profili_a4_verify_profile(p_serial_number text)
+create or replace function public.profili_a4_verify_profile(p_serial_number text)
 returns jsonb
 language plpgsql
 security definer
@@ -234,7 +269,7 @@ $$;
 revoke all on function public.profili_a4_verify_profile(text) from public, anon;
 grant execute on function public.profili_a4_verify_profile(text) to authenticated;
 
-create function public.profili_a4_revoke_profile_verification(p_serial_number text)
+create or replace function public.profili_a4_revoke_profile_verification(p_serial_number text)
 returns void
 language plpgsql
 security definer
