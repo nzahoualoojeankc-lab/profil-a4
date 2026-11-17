@@ -50,8 +50,9 @@
         </div>
       </div>
       <div class="user-badge" id="userBadge">Посетитель</div>
-      <button class="admin-settings-btn protected-ui-icon" data-handler-click="h4" title="Настройки профиля">⚙️</button>
+      <button class="admin-settings-btn protected-ui-icon" data-handler-click="h4" title="Réglages et administration" aria-label="Réglages et administration">⚙️</button>
       <button class="admin-settings-btn protected-ui-icon shortcut-key-button" data-handler-click="h5" title="Сочетания клавиш">⌨️</button>
+      <button type="button" class="header-logout-button" id="headerLogoutButton" data-handler-click="h40" hidden>Выйти</button>
     </div>
   </div>
 
@@ -99,9 +100,10 @@
   </div>
 
   <!-- ЛИЧНЫЕ НАСТРОЙКИ -->
-  <div class="admin-settings-panel" id="adminSettingsPanel">
+  <div class="admin-settings-backdrop" id="adminSettingsBackdrop" data-handler-click="h4" hidden></div>
+  <div class="admin-settings-panel" id="adminSettingsPanel" role="dialog" aria-modal="true" aria-labelledby="adminSettingsTitle" hidden>
     <div class="admin-settings-header">
-      <h2>⚙️ Настройки профиля</h2>
+      <h2 id="adminSettingsTitle">⚙️ Réglages du profil et administration</h2>
       <button class="close-settings" data-handler-click="h4">×</button>
     </div>
 
@@ -112,6 +114,7 @@
       <button class="admin-tab-btn" data-tab="fonts" data-handler-click="h8">✏️ Шрифты</button>
       <button class="admin-tab-btn" data-tab="settings" data-handler-click="h9">🔧 Параметры</button>
       <button class="admin-tab-btn" data-tab="language" data-handler-click="h60">🌐 Язык</button>
+      <button class="admin-tab-btn" id="adminTabButton" data-tab="admin" data-handler-click="h101" hidden>🛡️ Administration</button>
     </div>
 
     <div class="admin-settings-content">
@@ -256,75 +259,6 @@
           </div>
         </div>
 
-        <div class="settings-section account-moderation-section" id="accountModerationSection" hidden>
-          <h3>🛡️ Administration des comptes</h3>
-          <p>Les suspensions sont réversibles, motivées et journalisées. Aucune suppression définitive n’est proposée.</p>
-          <div class="settings-item">
-            <label for="accountSearchInput">Rechercher un compte par e-mail</label>
-            <div class="account-search-row">
-              <input id="accountSearchInput" type="search" autocomplete="off" placeholder="Au moins 3 caractères">
-              <button type="button" class="secondary" data-handler-click="h64">Rechercher</button>
-            </div>
-          </div>
-          <p class="account-admin-feedback" id="accountAdminFeedback" role="status" aria-live="polite"></p>
-          <div id="accountSearchResults" class="account-search-results" data-i18n-ignore="true"></div>
-          <div id="selectedAccountPanel" class="selected-account-panel" hidden>
-            <strong id="selectedAccountLabel" data-i18n-ignore="true"></strong>
-            <p id="selectedAccountStatus"></p>
-            <div class="settings-item">
-              <label for="moderationReason">Motif obligatoire</label>
-              <textarea id="moderationReason" maxlength="2000" rows="3"></textarea>
-            </div>
-            <div class="account-action-row">
-              <button type="button" class="danger" id="suspendAccountButton" data-handler-click="h65">Suspendre</button>
-              <button type="button" class="secondary" id="reactivateAccountButton" data-handler-click="h66">Réactiver</button>
-              <span id="accountDelegationSection">
-                <button type="button" class="secondary" id="grantModeratorButton" data-handler-click="h67" hidden>Déléguer l’administration</button>
-                <button type="button" class="danger" id="revokeModeratorButton" data-handler-click="h68" hidden>Révoquer la délégation</button>
-              </span>
-            </div>
-            <section class="account-billing-section" id="accountBillingSection">
-              <h4>Échéances et paiements</h4>
-              <p>Pour chaque période, saisissez le montant, la devise et la date d’échéance. Les rappels commencent après 3 jours de retard, puis sont répétés tous les 3 jours jusqu’à confirmation.</p>
-              <div class="settings-item">
-                <label for="paymentPeriod">Période mensuelle</label>
-                <input id="paymentPeriod" type="month">
-              </div>
-              <div class="settings-item payment-entry-row">
-                <div>
-                  <label for="paymentAmount">Montant</label>
-                  <input id="paymentAmount" type="number" min="0.01" step="0.01" inputmode="decimal">
-                </div>
-                <div>
-                  <label for="paymentCurrency">Devise (code à 3 lettres)</label>
-                  <input id="paymentCurrency" type="text" maxlength="3" autocomplete="off" placeholder="EUR">
-                </div>
-              </div>
-              <div class="settings-item">
-                <label for="paymentDueDate">Date d’échéance</label>
-                <input id="paymentDueDate" type="date">
-              </div>
-              <div class="settings-item">
-                <label for="paymentReason">Motif de la modification ou confirmation</label>
-                <textarea id="paymentReason" maxlength="2000" rows="2"></textarea>
-              </div>
-              <div class="account-action-row">
-                <button type="button" class="secondary" data-handler-click="h72">Enregistrer l’échéance</button>
-                <button type="button" class="secondary" data-handler-click="h75">Actualiser les paiements</button>
-              </div>
-              <p class="account-admin-feedback" id="paymentFeedback" role="status" aria-live="polite"></p>
-              <h5>Paiements enregistrés</h5>
-              <ul class="account-payment-list" id="paymentDueList" data-i18n-ignore="true"></ul>
-              <h5>Journal des paiements</h5>
-              <ol class="account-payment-audit" id="paymentAuditList" data-i18n-ignore="true"></ol>
-            </section>
-          </div>
-          <div id="accountAuditSection" class="account-audit-section">
-            <h4>Journal des actions</h4>
-            <ol id="accountAuditList" data-i18n-ignore="true"></ol>
-          </div>
-        </div>
-
       </div>
 
       <div id="language-tab" class="admin-tab-content">
@@ -337,6 +271,77 @@
               <option value="en">English</option>
               <option value="fr">Français</option>
             </select>
+          </div>
+
+          <div id="admin-tab" class="admin-tab-content">
+            <div class="settings-section account-moderation-section" id="accountModerationSection" hidden>
+              <h3>🛡️ Administration des comptes</h3>
+              <p>Les suspensions sont réversibles, motivées et journalisées. Aucune suppression définitive n’est proposée.</p>
+              <div class="settings-item">
+                <label for="accountSearchInput">Rechercher un compte par e-mail</label>
+                <div class="account-search-row">
+                  <input id="accountSearchInput" type="search" autocomplete="off" placeholder="Au moins 3 caractères">
+                  <button type="button" class="secondary" data-handler-click="h64">Rechercher</button>
+                </div>
+              </div>
+              <p class="account-admin-feedback" id="accountAdminFeedback" role="status" aria-live="polite"></p>
+              <div id="accountSearchResults" class="account-search-results" data-i18n-ignore="true"></div>
+              <div id="selectedAccountPanel" class="selected-account-panel" hidden>
+                <strong id="selectedAccountLabel" data-i18n-ignore="true"></strong>
+                <p id="selectedAccountStatus"></p>
+                <div class="settings-item">
+                  <label for="moderationReason">Motif obligatoire</label>
+                  <textarea id="moderationReason" maxlength="2000" rows="3"></textarea>
+                </div>
+                <div class="account-action-row">
+                  <button type="button" class="danger" id="suspendAccountButton" data-handler-click="h65">Suspendre</button>
+                  <button type="button" class="secondary" id="reactivateAccountButton" data-handler-click="h66">Réactiver</button>
+                  <span id="accountDelegationSection">
+                    <button type="button" class="secondary" id="grantModeratorButton" data-handler-click="h67" hidden>Déléguer l’administration</button>
+                    <button type="button" class="danger" id="revokeModeratorButton" data-handler-click="h68" hidden>Révoquer la délégation</button>
+                  </span>
+                </div>
+                <section class="account-billing-section" id="accountBillingSection">
+                  <h4>Échéances et paiements</h4>
+                  <p>Pour chaque période, saisissez le montant, la devise et la date d’échéance. Les rappels commencent après 3 jours de retard, puis sont répétés tous les 3 jours jusqu’à confirmation.</p>
+                  <div class="settings-item">
+                    <label for="paymentPeriod">Période mensuelle</label>
+                    <input id="paymentPeriod" type="month">
+                  </div>
+                  <div class="settings-item payment-entry-row">
+                    <div>
+                      <label for="paymentAmount">Montant</label>
+                      <input id="paymentAmount" type="number" min="0.01" step="0.01" inputmode="decimal">
+                    </div>
+                    <div>
+                      <label for="paymentCurrency">Devise (code à 3 lettres)</label>
+                      <input id="paymentCurrency" type="text" maxlength="3" autocomplete="off" placeholder="EUR">
+                    </div>
+                  </div>
+                  <div class="settings-item">
+                    <label for="paymentDueDate">Date d’échéance</label>
+                    <input id="paymentDueDate" type="date">
+                  </div>
+                  <div class="settings-item">
+                    <label for="paymentReason">Motif de la modification ou confirmation</label>
+                    <textarea id="paymentReason" maxlength="2000" rows="2"></textarea>
+                  </div>
+                  <div class="account-action-row">
+                    <button type="button" class="secondary" data-handler-click="h72">Enregistrer l’échéance</button>
+                    <button type="button" class="secondary" data-handler-click="h75">Actualiser les paiements</button>
+                  </div>
+                  <p class="account-admin-feedback" id="paymentFeedback" role="status" aria-live="polite"></p>
+                  <h5>Paiements enregistrés</h5>
+                  <ul class="account-payment-list" id="paymentDueList" data-i18n-ignore="true"></ul>
+                  <h5>Journal des paiements</h5>
+                  <ol class="account-payment-audit" id="paymentAuditList" data-i18n-ignore="true"></ol>
+                </section>
+              </div>
+              <div id="accountAuditSection" class="account-audit-section">
+                <h4>Journal des actions</h4>
+                <ol id="accountAuditList" data-i18n-ignore="true"></ol>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -595,8 +600,9 @@
           <button class="btn-new" data-handler-click="h36">➕ Новое</button>
           <button class="btn-batch-export initially-hidden" id="btnBatchExport" data-handler-click="h37">🖨️ Цепочка</button>
           <button class="btn-export" data-handler-click="h19">💾 Экспорт</button>
-          <button class="btn-delete initially-hidden" id="btnDelete" data-handler-click="h38">🗑️ Удал.</button>
+          <button class="btn-delete initially-hidden" id="btnDelete" data-handler-click="h38" title="Déplacer cette fiche dans l’archive">📦 Archiver</button>
           <button class="btn-reset" data-handler-click="h39">🔄 Сброс</button>
+          <button type="button" class="btn-archive" id="btnProfileArchive" data-handler-click="h96">Архив</button>
           <button class="btn-logout" data-handler-click="h40">🚪 Выход</button>
         </div>
       </div>
@@ -705,6 +711,13 @@
             <label>🖨️ Действия</label>
             <button class="print-btn full-width-button" data-handler-click="h51">Печать</button>
           </div>
+          <div class="control-group">
+            <label for="profilePrintFormat">Format de la fiche</label>
+            <select id="profilePrintFormat">
+              <option value="a4">A4</option>
+              <option value="a6">A6</option>
+            </select>
+          </div>
         </div>
 
         <div class="document-area" id="documentArea"></div>
@@ -727,8 +740,15 @@
             <select id="savedDocumentSelect" data-handler-change="h83">
               <option value="">Choisir un document enregistré</option>
             </select>
+            <label for="documentPageSize">Format</label>
+            <select id="documentPageSize" data-handler-change="h99">
+              <option value="a4">A4</option>
+              <option value="a6">A6</option>
+            </select>
             <button type="button" class="secondary" data-handler-click="h84">Nouveau document</button>
             <button type="button" class="secondary" data-handler-click="h94">Actualiser la liste des documents</button>
+            <button type="button" class="secondary" id="documentArchiveToggle" data-handler-click="h95">Afficher la corbeille</button>
+            <button type="button" class="secondary" id="documentRestoreButton" data-handler-click="h97" hidden>Restaurer le document</button>
           </div>
 
           <div class="document-editor-layout">
@@ -801,6 +821,7 @@
               <div class="document-action-buttons">
                 <button type="button" class="secondary" data-handler-click="h85">Enregistrer le modèle</button>
                 <button type="button" data-handler-click="h91">Supprimer le modèle</button>
+                <button type="button" class="secondary" id="templateRestoreButton" data-handler-click="h100" hidden>Restaurer le modèle</button>
                 <button type="button" class="secondary" data-handler-click="h90">Enregistrer le document</button>
                 <button type="button" class="danger" data-handler-click="h92">Supprimer le document</button>
                 <button type="button" class="print-btn" data-handler-click="h93">Imprimer / PDF</button>
@@ -822,24 +843,24 @@
   <!-- МОДАЛИ -->
   <div class="modal" id="deleteModal">
     <div class="modal-content">
-      <h2>🗑️ Удалить</h2>
+      <h2>📦 Archiver la fiche</h2>
       <p id="deleteMessage">Вы уверены?</p>
-      <p class="warning-text">⚠️ Необратимо!</p>
+      <p class="warning-text">Профиль будет перемещён в архив, его можно восстановить.</p>
       <div class="modal-buttons">
         <button class="modal-btn secondary" data-handler-click="h52">Отмена</button>
-        <button class="modal-btn danger" data-handler-click="h53">Удалить</button>
+        <button class="modal-btn danger" data-handler-click="h53">Archiver</button>
       </div>
     </div>
   </div>
 
   <div class="modal" id="resetModal">
     <div class="modal-content">
-      <h2>🔄 Сброс</h2>
-      <p class="warning-text">⚠️ Внимание: Необратимо!</p>
-      <p><span>Вы собираетесь удалить</span> <strong id="profileCountToReset">0</strong> <span>профиль (ей).</span></p>
+      <h2>📦 Archiver tous les profils</h2>
+      <p class="warning-text">Les profils resteront restaurables dans l’archive.</p>
+      <p><span>Вы собираетесь переместить в архив</span> <strong id="profileCountToReset">0</strong> <span>профиль (ей).</span></p>
       <div class="modal-buttons">
         <button class="modal-btn secondary" data-handler-click="h54">Отмена</button>
-        <button class="modal-btn danger" data-handler-click="h55">Удалить все</button>
+        <button class="modal-btn danger" data-handler-click="h55">Архивировать все</button>
       </div>
     </div>
   </div>
@@ -849,6 +870,12 @@
     <div class="modal-content batch-selection-modal">
       <h2>🖨️ Печать в цепочку</h2>
       <p>Выберите профили для печати в цепочку:</p>
+      <label class="batch-format-control" for="batchPrintFormat">Формат печати
+        <select id="batchPrintFormat">
+          <option value="a4">A4 — один профиль на страницу</option>
+          <option value="a6">A6 — четыре профиля на лист A4</option>
+        </select>
+      </label>
       
       <div class="batch-controls">
         <button data-handler-click="h56">✅ Выбрать все</button>

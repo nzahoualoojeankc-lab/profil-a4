@@ -34,6 +34,7 @@
   let draftId = null;
   let templates = [];
   let documents = [];
+  let showArchivedDocuments = false;
   let channel = null;
   let draftImagePaths = new Set();
   let pendingDeletePaths = new Set();
@@ -242,17 +243,26 @@
 
     templateSelect.replaceChildren();
     option(templateSelect, '', t('Choisir un modèle enregistré'));
-    templates.filter(item => item.category === categorySelect.value).forEach(item => {
+    templates.filter(item => item.category === categorySelect.value
+      && (!!item.archived_at === showArchivedDocuments)).forEach(item => {
       option(templateSelect, item.id, item.name);
     });
     templateSelect.value = currentTemplateId || '';
 
     documentSelect.replaceChildren();
     option(documentSelect, '', t('Choisir un document enregistré'));
-    documents.forEach(item => {
+    documents.filter(item => item.category === categorySelect.value
+      && (!!item.archived_at === showArchivedDocuments)).forEach(item => {
       option(documentSelect, item.id, `${item.title} — ${new Date(item.updated_at).toLocaleDateString(window.AppI18n.currentLanguage())}`);
     });
     documentSelect.value = currentDocumentId || '';
+    const archiveToggle = document.getElementById('documentArchiveToggle');
+    const restoreButton = document.getElementById('documentRestoreButton');
+    archiveToggle.textContent = showArchivedDocuments ? t('Afficher les documents actifs') : t('Afficher la corbeille');
+    restoreButton.hidden = !currentDocumentId
+      || !documents.some(item => item.id === currentDocumentId && !!item.archived_at);
+    document.getElementById('templateRestoreButton').hidden = !currentTemplateId
+      || !templates.some(item => item.id === currentTemplateId && !!item.archived_at);
   }
 
   function renderThemeControls() {
@@ -436,6 +446,7 @@
     sheet.dataset.category = current.category;
     sheet.dataset.orientation = current.design.orientation;
     sheet.dataset.shape = current.design.shape;
+    sheet.dataset.pageSize = document.getElementById('documentPageSize').value === 'a6' ? 'a6' : 'a4';
     const theme = current.design.theme;
     sheet.style.setProperty('--document-main', theme.main);
     sheet.style.setProperty('--document-background', theme.background);
@@ -507,7 +518,13 @@
       document.head.appendChild(style);
     }
     const orientation = current && current.design.orientation === 'landscape' ? 'landscape' : 'portrait';
-    style.textContent = `@page { size: A4 ${orientation}; margin: 10mm; }`;
+    const pageSize = document.getElementById('documentPageSize').value === 'a6' ? 'A6' : 'A4';
+    style.textContent = `@page { size: ${pageSize} ${orientation}; margin: ${pageSize === 'A6' ? '4mm' : '10mm'}; }`;
+  }
+
+  function updatePrintFormat() {
+    if (current) renderPreview();
+    else updatePrintRules();
   }
 
   function renderCollections() {
@@ -519,12 +536,12 @@
     const requestedUserId = userId;
     const [templateResult, documentResult] = await Promise.all([
       client.from('account_document_templates')
-        .select('id,category,name,design,updated_at')
+        .select('id,category,name,design,updated_at,archived_at')
         .eq('user_id', requestedUserId)
         .order('updated_at', { ascending: false })
         .limit(100),
       client.from('account_documents')
-        .select('id,category,title,payload,updated_at')
+        .select('id,category,title,payload,updated_at,archived_at')
         .eq('user_id', requestedUserId)
         .order('updated_at', { ascending: false })
         .limit(300)
@@ -567,6 +584,7 @@
     current = makePreset('payroll_report');
     currentTemplateId = null;
     currentDocumentId = null;
+    showArchivedDocuments = false;
     draftId = crypto.randomUUID();
     render();
     try {
@@ -596,6 +614,7 @@
     current = null;
     currentTemplateId = null;
     currentDocumentId = null;
+    showArchivedDocuments = false;
     draftId = null;
     templates = [];
     documents = [];
@@ -632,6 +651,7 @@
     if (draftImagePaths.size) cleanupPaths([...draftImagePaths]).catch(error => setFeedback(error.message, true));
     draftImagePaths = new Set();
     pendingDeletePaths = new Set();
+    showArchivedDocuments = false;
     current = makePreset(category);
     currentTemplateId = null;
     currentDocumentId = null;
@@ -681,12 +701,6 @@
     draftId = crypto.randomUUID();
     setFeedback('', false);
     render();
-  }
-
-  function pathsInValues(values) {
-    return Object.values(values || {}).filter(value =>
-      typeof value === 'string' && value.startsWith(`${userId}/documents/`)
-    );
   }
 
   function loadDocument(id) {
@@ -891,10 +905,11 @@
   async function saveTemplate() {
     if (!client || !userId) {
       setFeedback(t('Connectez-vous pour enregistrer des documents dans votre compte.'), true);
-      return;
+      return false;
     }
     try {
       const { templateName } = validateBeforeSave();
+      if (!currentTemplateId) showArchivedDocuments = false;
       const row = {
         user_id: userId,
         category: current.category,
@@ -915,18 +930,21 @@
       current.templateId = currentTemplateId;
       await loadCollections();
       setFeedback(t('Modèle enregistré dans ce compte.'), false);
+      return true;
     } catch (error) {
       setFeedback(error.message, true);
+      return false;
     }
   }
 
   async function saveDocument() {
     if (!client || !userId) {
       setFeedback(t('Connectez-vous pour enregistrer des documents dans votre compte.'), true);
-      return;
+      return false;
     }
     try {
       const { title } = validateBeforeSave();
+      if (!currentDocumentId) showArchivedDocuments = false;
       const id = currentDocumentId || draftId;
       const payload = {
         version: 1,
@@ -957,8 +975,10 @@
       setFeedback(cleanupError
         ? `${t('Document enregistré, mais certaines anciennes images n’ont pas pu être supprimées : ')}${cleanupError.message}`
         : t('Document enregistré dans ce compte.'), !!cleanupError);
+      return true;
     } catch (error) {
       setFeedback(error.message, true);
+      return false;
     }
   }
 
@@ -967,21 +987,47 @@
       setFeedback(t('Enregistrez le document avant de le supprimer.'), true);
       return;
     }
-    if (!window.confirm(t('Supprimer définitivement ce document enregistré ?'))) return;
-    const item = documents.find(entry => entry.id === currentDocumentId);
-    const paths = pathsInValues(item && item.payload && item.payload.values);
-    const { error } = await client.from('account_documents').delete()
-      .eq('id', currentDocumentId).eq('user_id', userId);
+    if (documents.some(item => item.id === currentDocumentId && item.archived_at)) {
+      setFeedback(t('Ce document est déjà dans la corbeille. Restaurez-le pour le modifier.'), true);
+      return;
+    }
+    if (!window.confirm(t('Placer ce document dans la corbeille ? Vous pourrez le restaurer plus tard.'))) return;
+    if (!await saveDocument()) return;
+    const { error } = await client.from('account_documents').update({ archived_at: new Date().toISOString() })
+      .eq('id', currentDocumentId).eq('user_id', userId).is('archived_at', null);
     if (error) {
       setFeedback(error.message, true);
       return;
     }
-    const cleanupError = await cleanupPaths(paths);
     createPreset(document.getElementById('documentCategory').value);
     await loadCollections();
-    setFeedback(cleanupError
-      ? `${t('Document supprimé, mais certaines images n’ont pas pu être supprimées : ')}${cleanupError.message}`
-      : t('Document supprimé.'), !!cleanupError);
+    setFeedback(t('Document déplacé dans la corbeille. Vous pouvez le restaurer.'), false);
+  }
+
+  async function restoreDocument() {
+    if (!client || !userId || !currentDocumentId) {
+      setFeedback(t('Choisissez un document archivé à restaurer.'), true);
+      return;
+    }
+    const { error } = await client.from('account_documents').update({ archived_at: null })
+      .eq('id', currentDocumentId).eq('user_id', userId).not('archived_at', 'is', null);
+    if (error) {
+      setFeedback(error.message, true);
+      return;
+    }
+    showArchivedDocuments = false;
+    await loadCollections();
+    const restored = documents.find(item => item.id === currentDocumentId);
+    if (restored) loadDocument(restored.id);
+    setFeedback(t('Document restauré.'), false);
+  }
+
+  function toggleArchiveView() {
+    showArchivedDocuments = !showArchivedDocuments;
+    document.getElementById('savedDocumentSelect').value = '';
+    renderSelectors();
+    if (showArchivedDocuments) setFeedback(t('Corbeille : sélectionnez un document pour le restaurer.'), false);
+    else setFeedback('', false);
   }
 
   async function deleteTemplate() {
@@ -989,9 +1035,14 @@
       setFeedback(t('Aucun modèle enregistré n’est sélectionné.'), true);
       return;
     }
-    if (!window.confirm(t('Supprimer définitivement ce modèle enregistré ?'))) return;
-    const { error } = await client.from('account_document_templates').delete()
-      .eq('id', currentTemplateId).eq('user_id', userId);
+    if (templates.some(item => item.id === currentTemplateId && item.archived_at)) {
+      setFeedback(t('Ce modèle est déjà dans la corbeille. Restaurez-le pour le modifier.'), true);
+      return;
+    }
+    if (!window.confirm(t('Placer ce modèle dans la corbeille ? Vous pourrez le restaurer plus tard.'))) return;
+    if (!await saveTemplate()) return;
+    const { error } = await client.from('account_document_templates').update({ archived_at: new Date().toISOString() })
+      .eq('id', currentTemplateId).eq('user_id', userId).is('archived_at', null);
     if (error) {
       setFeedback(error.message, true);
       return;
@@ -1000,9 +1051,25 @@
     currentTemplateId = null;
     current.templateId = null;
     await loadCollections();
-    setFeedback(t('Modèle supprimé.'), false);
+    setFeedback(t('Modèle déplacé dans la corbeille.'), false);
     document.getElementById('documentTemplateSelect').value = '';
     if (category !== current.category) createPreset(category);
+  }
+
+  async function restoreTemplate() {
+    if (!client || !userId || !currentTemplateId) {
+      setFeedback(t('Choisissez un modèle archivé à restaurer.'), true);
+      return;
+    }
+    const { error } = await client.from('account_document_templates').update({ archived_at: null })
+      .eq('id', currentTemplateId).eq('user_id', userId).not('archived_at', 'is', null);
+    if (error) {
+      setFeedback(error.message, true);
+      return;
+    }
+    showArchivedDocuments = false;
+    await loadCollections();
+    setFeedback(t('Modèle restauré.'), false);
   }
 
   function activate() {
@@ -1072,6 +1139,10 @@
     updateFromElement,
     print,
     refresh,
+    toggleArchiveView,
+    restoreDocument,
+    restoreTemplate,
+    updatePrintFormat,
     setLanguage
   };
 })();

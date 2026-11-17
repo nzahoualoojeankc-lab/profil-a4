@@ -228,10 +228,13 @@
     let authState = { currentUser: null, isLoggedIn: false };
     let appState = {
       allProfiles: [],
+      archivedProfiles: [],
       currentProfileId: null,
+      showArchivedProfiles: false,
       saveTimeout: null,
       profileToDelete: null,
       colorMode: 'global',
+      suppressProfileRealtime: false,
       fontFamily: 'Times New Roman',
       fontSettings: { fontFamily: 'Times New Roman', fontSize: 16, textColor: '#333333' },
       colors: {
@@ -330,6 +333,7 @@
       const isSuspended = accountAccess.status === 'suspended';
       const needsTerms = !accountAccess.termsAccepted;
       const blocked = isSuspended || needsTerms;
+      document.body.classList.toggle('account-ui-ready', authState.isLoggedIn && !blocked);
       document.getElementById('accountNotificationsButton').hidden = blocked;
       if (blocked) {
         document.getElementById('accountNotificationPanel').hidden = true;
@@ -376,6 +380,7 @@
 
       const moderationSection = document.getElementById('accountModerationSection');
       moderationSection.hidden = !accountAccess.role;
+      document.getElementById('adminTabButton').hidden = !accountAccess.role;
       document.getElementById('accountBillingSection').hidden = !accountAccess.role;
       document.getElementById('accountDelegationSection').hidden = accountAccess.role !== 'owner';
     }
@@ -395,14 +400,22 @@
       activeUserId = null;
       db = null;
       appState.allProfiles = [];
+      appState.archivedProfiles = [];
       appState.currentProfileId = null;
+      appState.showArchivedProfiles = false;
+      appState.batchSelectedProfiles.clear();
       appState.saveTimeout = null;
       setA4UIReady(false);
       document.getElementById('adminSettingsPanel').classList.remove('show');
+      document.getElementById('adminSettingsPanel').hidden = true;
+      document.getElementById('adminSettingsBackdrop').hidden = true;
+      document.body.classList.remove('admin-settings-open');
+      document.body.classList.remove('account-ui-ready');
       document.getElementById('shortcutsOverlay').classList.remove('show');
       document.getElementById('documentArea').innerHTML = '';
       document.getElementById('profilesList').innerHTML = '';
       document.getElementById('accountNoticeBanner').hidden = true;
+      document.getElementById('adminTabButton').hidden = true;
     }
 
     function showAccountStatusFailure(error) {
@@ -871,9 +884,25 @@
         db.getProfile(appState.currentProfileId).then(profile => {
           if (profile) {
             applyPrintFileName(profile);
-            
+            const printFormat = document.getElementById('profilePrintFormat').value;
+            let printRules = document.getElementById('profilePrintRules');
+            if (printFormat === 'a6') {
+              if (!printRules) {
+                printRules = document.createElement('style');
+                printRules.id = 'profilePrintRules';
+                document.head.appendChild(printRules);
+              }
+              printRules.textContent = '@page { size: A6 portrait; margin: 0; }';
+              document.body.classList.add('printing-profile-a6');
+            }
+            const restorePrintLayout = () => {
+              document.body.classList.remove('printing-profile-a6');
+              if (printRules) printRules.remove();
+            };
+            window.addEventListener('afterprint', restorePrintLayout, { once: true });
             setTimeout(() => {
               window.print();
+              setTimeout(restorePrintLayout, 2000);
             }, 100);
           }
         }).catch(error => alert('Не удалось подготовить профиль к печати: ' + error.message));
@@ -1011,7 +1040,6 @@
       return formatted + ' ₽';
     }
 
-    // ✅ УЛУЧШЕННАЯ ПЕЧАТЬ В ЦЕПОЧКУ
     async function executeBatchPrint() {
       if (appState.batchSelectedProfiles.size === 0) {
         alert('❌ Пожалуйста, выберите хотя бы один профиль');
@@ -1027,95 +1055,80 @@
         });
 
         closeModal('batchExportModal');
+        await printBatchProfiles(selectedProfiles, document.getElementById('batchPrintFormat').value);
+      } catch (error) {
+        setSyncStatus('Erreur lors de la préparation de l’impression groupée : ' + error.message, true);
+        alert('Impression groupée impossible : ' + error.message);
+      }
+    }
 
-        const periods = {};
-        selectedProfiles.forEach(p => {
-          const period = p.dateRange;
-          periods[period] = (periods[period] || 0) + 1;
-        });
-        
-        const dominantPeriod = Object.keys(periods).reduce((a, b) => 
-          periods[a] > periods[b] ? a : b, Object.keys(periods)[0]);
+    async function printBatchProfiles(profiles, format) {
+      if (!profiles.length) {
+        alert('❌ Пожалуйста, выберите хотя бы один профиль');
+        return;
+      }
+      const useA6 = format === 'a6';
+      const area = document.getElementById('documentArea');
+      const originalChildren = Array.from(area.childNodes);
+      const originalProfileId = appState.currentProfileId;
+      const saved = await saveProfile();
+      if (!saved) throw new Error('Печать отменена: профиль не удалось сохранить.');
 
-        const progressOverlay = document.createElement('div');
-        progressOverlay.className = 'print-progress-overlay';
-        progressOverlay.id = 'printProgressOverlay';
-        document.body.appendChild(progressOverlay);
-
-        let printIndex = 0;
-        const totalProfiles = selectedProfiles.length;
-
-        async function printNext() {
-          if (printIndex >= totalProfiles) {
-            progressOverlay.remove();
-            appState.batchSelectedProfiles.clear();
-            
-            const summary = `
-✅ ПЕЧАТЬ В ЦЕПОЧКУ ЗАВЕРШЕНА
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 Статистика:
-  • Профилей напечатано: ${totalProfiles}
-  • Доминирующий период: ${dominantPeriod}
-  • Дата/Время: ${new Date().toLocaleString('ru-RU')}
-            `;
-            
-            alert(summary);
-            return;
+      const batch = document.createElement('div');
+      batch.className = useA6 ? 'batch-a6-container' : 'batch-a4-container';
+      const printRules = document.createElement('style');
+      printRules.textContent = '@page { size: A4 portrait; margin: 0; }';
+      document.head.appendChild(printRules);
+      try {
+        for (let index = 0; index < profiles.length; index++) {
+          await selectProfile(profiles[index].id);
+          const page = document.getElementById('page');
+          if (!page) throw new Error('Une fiche sélectionnée est introuvable.');
+          if (!useA6 || index % 4 === 0) {
+            const sheet = document.createElement('section');
+            sheet.className = useA6 ? 'batch-a6-sheet' : 'batch-a4-sheet';
+            batch.appendChild(sheet);
           }
-
-          const profile = selectedProfiles[printIndex];
-          const progress = printIndex + 1;
-          const percentage = Math.round((progress / totalProfiles) * 100);
-
-          progressOverlay.innerHTML = `
-            <h2>🖨️ Печать в цепочку</h2>
-            <div class="print-progress-bar">
-              <div class="print-progress-fill" style="width: ${percentage}%;">
-                <span>${percentage}%</span>
-              </div>
-            </div>
-            <div class="print-progress-text">${progress} / ${totalProfiles}</div>
-            <div class="print-profile-name">${escapeHtml(generatePrintFileName(profile))}</div>
-            <p style="color: #999; font-size: 12px; margin-top: 10px;">
-              📅 Период: ${escapeHtml(profile.dateRange)}<br>
-              💰 Итого: ${escapeHtml(profile.totalPrice)}
-            </p>
-          `;
-
-          await selectProfile(profile.id);
-
-          setTimeout(() => {
-            saveProfile().then(saved => {
-              if (!saved) {
-                progressOverlay.remove();
-                alert('Печать остановлена: профиль не удалось сохранить.');
-                return;
-              }
-              applyPrintFileName(profile);
-              
-              window.print();
-              
-              setTimeout(() => {
-                printIndex++;
-                printNext().catch(error => {
-                  if (progressOverlay.isConnected) progressOverlay.remove();
-                  setSyncStatus('Ошибка пакетной печати: ' + error.message, true);
-                  alert('Пакетная печать остановлена: ' + error.message);
-                });
-              }, 2000);
-            });
-          }, 500);
+          const copy = page.cloneNode(true);
+          copy.removeAttribute('id');
+          copy.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+          if (useA6) {
+            const slot = document.createElement('div');
+            slot.className = 'batch-a6-slot';
+            slot.appendChild(copy);
+            batch.lastElementChild.appendChild(slot);
+          } else {
+            batch.lastElementChild.appendChild(copy);
+          }
         }
 
-        printNext().catch(error => {
-          if (progressOverlay.isConnected) progressOverlay.remove();
-          setSyncStatus('Ошибка пакетной печати: ' + error.message, true);
-          alert('Пакетная печать остановлена: ' + error.message);
-        });
-
+        area.replaceChildren(batch);
+        const printClass = useA6 ? 'printing-batch-a6' : 'printing-batch-a4';
+        document.body.classList.add(printClass);
+        let restored = false;
+        const restore = async () => {
+          if (restored) return;
+          restored = true;
+          document.body.classList.remove(printClass);
+          printRules.remove();
+          area.replaceChildren(...originalChildren);
+          window.removeEventListener('afterprint', restore);
+          if (originalProfileId !== null && appState.currentProfileId !== originalProfileId) {
+            await selectProfile(originalProfileId);
+          }
+        };
+        window.addEventListener('afterprint', restore, { once: true });
+        window.print();
+        await restore();
+        appState.batchSelectedProfiles.clear();
       } catch (error) {
-        alert('❌ Ошибка: ' + error.message);
-        console.error(error);
+        document.body.classList.remove('printing-batch-a6', 'printing-batch-a4');
+        printRules.remove();
+        area.replaceChildren(...originalChildren);
+        if (originalProfileId !== null && appState.currentProfileId !== originalProfileId) {
+          await selectProfile(originalProfileId);
+        }
+        throw error;
       }
     }
 
@@ -1253,10 +1266,14 @@
     }
 
     function toggleAdminSettings() {
-      if (!isA4UIReady()) return;
+      if (!authState.isLoggedIn || !accountAccess || accountAccess.status === 'suspended' || !accountAccess.termsAccepted) return;
       const panel = document.getElementById('adminSettingsPanel');
       const opening = !panel.classList.contains('show');
+      if (opening) closeMobilePanels();
       panel.classList.toggle('show');
+      panel.hidden = !opening;
+      document.getElementById('adminSettingsBackdrop').hidden = !opening;
+      document.body.classList.toggle('admin-settings-open', opening);
       if (opening && accountAccess && accountAccess.role) loadAdminAudit();
     }
 
@@ -1489,6 +1506,7 @@
       document.getElementById('currentUser').textContent = displayName;
       document.getElementById('userBadge').textContent = displayName;
       document.getElementById('userBadge').classList.remove('admin');
+      document.getElementById('headerLogoutButton').hidden = false;
       document.getElementById('landingPage').style.display = 'none';
       document.getElementById('appPage').classList.add('show');
       switchPage('app');
@@ -1539,6 +1557,7 @@
         throw error;
       }
       realtimeChannel = db.subscribe(() => {
+        if (appState.suppressProfileRealtime) return;
         loadProfiles().then(() => {
           if (appState.currentProfileId && !appState.saveTimeout) {
             return selectProfile(appState.currentProfileId);
@@ -1589,6 +1608,7 @@
       document.querySelector('.app-container').classList.remove('hidden');
       document.getElementById('accountNoticeBanner').hidden = true;
       document.getElementById('accountModerationSection').hidden = true;
+      document.getElementById('adminTabButton').hidden = true;
       document.getElementById('accountBillingSection').hidden = true;
       document.getElementById('accountDelegationSection').hidden = true;
       document.getElementById('accountSearchResults').replaceChildren();
@@ -1601,6 +1621,7 @@
       document.getElementById('currentUser').textContent = 'Гость';
       document.getElementById('userBadge').textContent = 'Посетитель';
       document.getElementById('userBadge').classList.remove('admin');
+      document.getElementById('headerLogoutButton').hidden = true;
       document.getElementById('loginPassword').value = '';
       document.getElementById('acceptAccountTerms').checked = false;
       document.getElementById('acceptAccountTermsButton').disabled = true;
@@ -1716,14 +1737,23 @@
 
       async getAllProfiles() {
         const { data, error } = await this.client.from(this.table).select('id,data')
-          .eq('user_id', this.userId).limit(CONFIG.MAX_PROFILES);
+          .eq('user_id', this.userId).is('data->>archivedAt', null)
+          .limit(CONFIG.MAX_PROFILES);
+        if (error) throw error;
+        return data.map(row => this.profileFromRow(row)).filter(profile => !profile.archivedAt);
+      }
+
+      async getArchivedProfiles() {
+        const { data, error } = await this.client.from(this.table).select('id,data')
+          .eq('user_id', this.userId).not('data->>archivedAt', 'is', null);
         if (error) throw error;
         return data.map(row => this.profileFromRow(row));
       }
 
       async countProfiles() {
         const { count, error } = await this.client.from(this.table)
-          .select('id', { count: 'exact', head: true }).eq('user_id', this.userId);
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', this.userId).is('data->>archivedAt', null);
         if (error) throw error;
         return count || 0;
       }
@@ -1757,29 +1787,26 @@
         if (error) throw error;
       }
 
-      async deleteProfile(id) {
+      async archiveProfile(id) {
         const profile = await this.getProfile(id);
-        const { error } = await this.client.from(this.table).delete()
-          .eq('user_id', this.userId).eq('id', Number(id));
-        if (error) throw error;
-        if (!profile || !profile.photoPath) return null;
-        try {
-          await this.removePhotos([profile.photoPath]);
-          return null;
-        } catch (error) {
-          return 'Профиль удален, но фото осталось в хранилище: ' + error.message;
-        }
+        if (!profile) throw new Error('Профиль не найден.');
+        profile.archivedAt = new Date().toISOString();
+        await this.updateProfile(profile);
       }
 
-      async deleteAllProfiles() {
+      async restoreProfile(id) {
+        const profile = await this.getProfile(id);
+        if (!profile || !profile.archivedAt) throw new Error('Архивный профиль не найден.');
+        delete profile.archivedAt;
+        await this.updateProfile(profile);
+      }
+
+      async archiveAllProfiles() {
         const profiles = await this.getAllProfiles();
-        const { error } = await this.client.from(this.table).delete().eq('user_id', this.userId);
-        if (error) throw error;
-        try {
-          await this.removePhotos(profiles.map(profile => profile.photoPath));
-          return null;
-        } catch (error) {
-          return 'Профили удалены, но некоторые фото остались в хранилище: ' + error.message;
+        const archivedAt = new Date().toISOString();
+        for (const profile of profiles) {
+          profile.archivedAt = archivedAt;
+          await this.updateProfile(profile);
         }
       }
 
@@ -2000,6 +2027,7 @@
 
     async function createNewProfile() {
       try {
+        appState.showArchivedProfiles = false;
         const count = await db.countProfiles();
         if (count >= CONFIG.MAX_PROFILES) {
           alert(`❌ ${window.AppI18n.t('Достигнут лимит')} ${CONFIG.MAX_PROFILES} ${window.AppI18n.t('профилей')}`);
@@ -2048,32 +2076,77 @@
     function renderProfilesList() {
       const list = document.getElementById('profilesList');
       const searchBox = document.getElementById('searchBox');
-      if (appState.allProfiles.length === 0) {
+      const profiles = appState.showArchivedProfiles ? appState.archivedProfiles : appState.allProfiles;
+      const archiveButton = document.getElementById('btnProfileArchive');
+      archiveButton.textContent = appState.showArchivedProfiles ? 'Profils actifs' : 'Archive';
+      archiveButton.setAttribute('aria-pressed', String(appState.showArchivedProfiles));
+      if (profiles.length === 0) {
         list.classList.add('empty');
-        list.innerHTML = 'Нет профилей';
-        searchBox.classList.remove('show');
+        list.textContent = appState.showArchivedProfiles ? 'L’archive est vide.' : 'Нет профилей';
+        searchBox.classList.toggle('show', !appState.showArchivedProfiles && appState.allProfiles.length > 0);
         document.getElementById('btnBatchExport').style.display = 'none';
         return;
       }
       list.classList.remove('empty');
-      searchBox.classList.add('show');
-      document.getElementById('btnBatchExport').style.display = 'inline-block';
+      searchBox.classList.toggle('show', !appState.showArchivedProfiles);
+      document.getElementById('btnBatchExport').style.display = appState.showArchivedProfiles ? 'none' : 'inline-block';
       list.innerHTML = '';
-      appState.allProfiles.forEach(profile => {
+      profiles.forEach(profile => {
         const div = document.createElement('div');
-        div.className = `profile-item ${profile.id === appState.currentProfileId ? 'active' : ''}`;
-        div.onclick = () => selectProfile(profile.id).catch(error => {
-          setSyncStatus('Не удалось открыть профиль: ' + error.message, true);
-          alert('Не удалось открыть профиль: ' + error.message);
-        });
+        div.className = `profile-item ${!appState.showArchivedProfiles && profile.id === appState.currentProfileId ? 'active' : ''}`;
+        if (!appState.showArchivedProfiles) {
+          div.onclick = () => selectProfile(profile.id).catch(error => {
+            setSyncStatus('Не удалось открыть профиль: ' + error.message, true);
+            alert('Не удалось открыть профиль: ' + error.message);
+          });
+        }
         div.innerHTML = `
           <div class="profile-item-content">
             <div class="profile-item-name">${escapeHtml(profile.name)}</div>
-            <div class="profile-item-date">${escapeHtml(profile.dateRange)}</div>
+            <div class="profile-item-date">${escapeHtml(profile.dateRange)}${appState.showArchivedProfiles ? ` · ${new Date(profile.archivedAt).toLocaleDateString()}` : ''}</div>
           </div>
         `;
+        if (appState.showArchivedProfiles) {
+          const restore = document.createElement('button');
+          restore.type = 'button';
+          restore.className = 'profile-restore-button';
+          restore.textContent = 'Restaurer';
+          restore.addEventListener('click', event => {
+            event.stopPropagation();
+            restoreProfile(profile.id);
+          });
+          div.appendChild(restore);
+        }
         list.appendChild(div);
       });
+    }
+
+    async function toggleProfileArchiveView() {
+      appState.showArchivedProfiles = !appState.showArchivedProfiles;
+      try {
+        if (appState.showArchivedProfiles) {
+          appState.archivedProfiles = await db.getArchivedProfiles();
+          appState.archivedProfiles.sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt));
+        }
+        renderProfilesList();
+      } catch (error) {
+        appState.showArchivedProfiles = false;
+        setSyncStatus('Impossible de charger l’archive des profils : ' + error.message, true);
+        alert('Impossible d’ouvrir l’archive : ' + error.message);
+      }
+    }
+
+    async function restoreProfile(id) {
+      try {
+        await db.restoreProfile(id);
+        appState.archivedProfiles = appState.archivedProfiles.filter(profile => profile.id !== Number(id));
+        await loadProfiles();
+        await updateStorageInfo();
+        renderProfilesList();
+      } catch (error) {
+        setSyncStatus('Не удалось восстановить профиль: ' + error.message, true);
+        alert('Не удалось восстановить профиль: ' + error.message);
+      }
     }
 
     function displayEmptyState() {
@@ -2242,7 +2315,7 @@
         const profile = await db.getProfile(appState.currentProfileId);
         if (!profile) return;
         appState.profileToDelete = profile;
-        document.getElementById('deleteMessage').innerHTML = `<span>Удалить</span> "<strong>${escapeHtml(profile.name)}</strong>"?`;
+        document.getElementById('deleteMessage').innerHTML = `<span>Archiver</span> "<strong>${escapeHtml(profile.name)}</strong>" ?`;
         showModal('deleteModal');
       } catch (error) {
         setSyncStatus('Не удалось загрузить профиль: ' + error.message, true);
@@ -2253,15 +2326,21 @@
     async function confirmDeleteProfile() {
       if (!appState.profileToDelete) return;
       try {
-        const cleanupWarning = await db.deleteProfile(appState.profileToDelete.id);
+        if (appState.saveTimeout) {
+          clearTimeout(appState.saveTimeout);
+          appState.saveTimeout = null;
+          if (!await saveProfile()) throw new Error('Enregistrez les modifications avant d’archiver cette fiche.');
+        }
+        await db.archiveProfile(appState.profileToDelete.id);
         appState.currentProfileId = null;
+        appState.profileToDelete = null;
+        appState.showArchivedProfiles = false;
         await loadProfiles();
         await updateStorageInfo();
         closeModal('deleteModal');
-        if (cleanupWarning) alert(cleanupWarning);
       } catch (error) {
-        setSyncStatus('Не удалось удалить профиль: ' + error.message, true);
-        alert('Не удалось удалить профиль: ' + error.message);
+        setSyncStatus('Impossible d’archiver le profil : ' + error.message, true);
+        alert('Impossible d’archiver le profil : ' + error.message);
       }
     }
 
@@ -2278,22 +2357,34 @@
 
     async function confirmResetDatabase() {
       try {
-        const cleanupWarning = await db.deleteAllProfiles();
-        appState.allProfiles = [];
+        if (appState.saveTimeout) {
+          clearTimeout(appState.saveTimeout);
+          appState.saveTimeout = null;
+          if (!await saveProfile()) throw new Error('Enregistrez les modifications avant d’archiver les profils.');
+        }
+        appState.suppressProfileRealtime = true;
+        try {
+          await db.archiveAllProfiles();
+        } finally {
+          appState.suppressProfileRealtime = false;
+        }
         appState.currentProfileId = null;
+        appState.showArchivedProfiles = false;
         await loadProfiles();
         await updateStorageInfo();
         closeModal('resetModal');
-        alert(cleanupWarning || 'Облачная база профилей очищена.');
+        alert('Профили перемещены в архив. Вы можете восстановить их через кнопку «Архив».');
       } catch (error) {
-        setSyncStatus('Не удалось очистить базу профилей: ' + error.message, true);
-        alert('Не удалось очистить базу профилей: ' + error.message);
+        setSyncStatus('Impossible d’archiver les profils : ' + error.message, true);
+        alert('Impossible d’archiver les profils : ' + error.message);
       }
     }
 
     async function exportDatabase() {
       try {
-        const allData = await db.getAllProfiles();
+        const activeProfiles = await db.getAllProfiles();
+        const archivedProfiles = await db.getArchivedProfiles();
+        const allData = [...activeProfiles, ...archivedProfiles];
         const dataStr = JSON.stringify(allData, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -2321,11 +2412,15 @@
         const profiles = JSON.parse(await file.text());
         if (!Array.isArray(profiles)) throw new Error('Ожидается JSON-массив профилей.');
         const existingCount = await db.countProfiles();
-        if (existingCount + profiles.length > CONFIG.MAX_PROFILES) {
+        const incomingActiveCount = profiles.filter(profile => profile && !profile.archivedAt).length;
+        if (existingCount + incomingActiveCount > CONFIG.MAX_PROFILES) {
           throw new Error(`Можно хранить не более ${CONFIG.MAX_PROFILES} профилей на аккаунт.`);
         }
 
-        const usedIds = new Set((await db.getAllProfiles()).map(profile => profile.id));
+        const activeProfiles = await db.getAllProfiles();
+        const archivedProfiles = await db.getArchivedProfiles();
+        const existingProfiles = [...activeProfiles, ...archivedProfiles];
+        const usedIds = new Set(existingProfiles.map(profile => profile.id));
         let nextId = Date.now() * 1000;
         let imported = 0;
         const errors = [];
@@ -2355,7 +2450,10 @@
             fontFamily: getSafeFontFamily(oldProfile.fontFamily),
             fontSettings: oldProfile.fontSettings && typeof oldProfile.fontSettings === 'object' ? oldProfile.fontSettings : {},
             sizes: normalizeProfileSizes(oldProfile.sizes),
-            lastModified: new Date().toISOString()
+            lastModified: new Date().toISOString(),
+            ...(typeof oldProfile.archivedAt === 'string' && !Number.isNaN(Date.parse(oldProfile.archivedAt))
+              ? { archivedAt: oldProfile.archivedAt }
+              : {})
           };
           let uploadedPath = null;
           try {
@@ -2400,7 +2498,9 @@
       try {
         if (!db) return;
         const count = await db.countProfiles();
-        const allData = await db.getAllProfiles();
+        const activeProfiles = await db.getAllProfiles();
+        const archivedProfiles = await db.getArchivedProfiles();
+        const allData = [...activeProfiles, ...archivedProfiles];
         let totalSize = 0;
         allData.forEach(p => {
           totalSize += JSON.stringify(p).length;
@@ -2530,6 +2630,9 @@
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
         closeMobilePanels();
+        if (document.getElementById('adminSettingsPanel').classList.contains('show')) {
+          toggleAdminSettings();
+        }
       }
     });
 

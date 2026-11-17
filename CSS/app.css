@@ -2475,7 +2475,9 @@ table tbody tr:hover {
       transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
     }
 
-    body:not(.a4-ui-ready) .protected-ui-icon {
+    body:not(.account-ui-ready) .admin-settings-btn:not(.shortcut-key-button),
+    body:not(.a4-ui-ready) .shortcut-key-button,
+    body:not(.a4-ui-ready) .protected-ui-icon:not(.admin-settings-btn) {
       display: none !important;
       visibility: hidden !important;
       opacity: 0 !important;
@@ -2725,7 +2727,13 @@ table tbody tr:hover {
       .admin-settings-panel,
       .language-picker,
       .shortcuts-overlay,
-      .print-progress-overlay {
+      .print-progress-overlay,
+      .workspace-tabs,
+      .mobile-drawer-backdrop,
+      .mobile-panel-toggle,
+      .mobile-drawer-close,
+      .account-notification-panel,
+      .admin-settings-backdrop {
         display: none !important;
       }
 
@@ -3529,6 +3537,14 @@ table tbody tr:hover {
   .document-editor-layout {
     grid-template-columns: 1fr;
   }
+
+  .document-preview-shell {
+    grid-row: 1;
+  }
+
+  .document-editor-panel {
+    grid-row: 2;
+  }
 }
 
 @media (max-width: 600px) {
@@ -3630,5 +3646,214 @@ table tbody tr:hover {
   body.printing-document .document-preview-card {
     box-shadow: none !important;
     break-inside: avoid;
+  }
+}
+
+.header-logout-button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: #b42318;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.top-header-right {
+  flex-wrap: wrap;
+}
+
+.admin-settings-backdrop[hidden] {
+  display: none !important;
+}
+
+.header-logout-button[hidden] {
+  display: none !important;
+}
+
+.btn-archive,
+.profile-restore-button {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5df;
+  border-radius: 7px;
+  background: #fff;
+  color: #24333f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-restore-button {
+  flex: 0 0 auto;
+  font-size: .82rem;
+}
+
+.admin-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(15, 23, 42, .28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.admin-settings-panel {
+  z-index: 999;
+  right: 0;
+  bottom: 0;
+  max-height: calc(100dvh - 60px);
+  overscroll-behavior: contain;
+}
+
+@media print {
+  .mobile-drawer-backdrop,
+  .mobile-panel-toggle,
+  .mobile-drawer-close,
+  .admin-settings-backdrop,
+  .header-logout-button,
+  .btn-archive,
+  .profile-restore-button {
+    display: none !important;
+  }
+}
+
+.batch-format-control {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+  font-weight: 700;
+}
+
+.batch-format-control select {
+  min-height: 38px;
+}
+
+.document-sheet[data-page-size="a6"] {
+  width: min(105mm, 100%);
+  min-height: 148.5mm;
+}
+
+.document-sheet[data-page-size="a6"] .document-preview-card {
+  min-height: 130mm;
+  padding: 14px;
+  gap: 8px;
+}
+
+@media print {
+  body.printing-batch-a4 .app-container,
+  body.printing-batch-a4 .main-content,
+  body.printing-batch-a4 .profile-workspace,
+  body.printing-batch-a4 .document-area {
+    display: block !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.printing-batch-a4 .batch-a4-sheet {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    overflow: hidden !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  body.printing-batch-a4 .batch-a4-sheet .a4 {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    transform: none !important;
+    page-break-after: auto !important;
+  }
+
+  body.printing-batch-a4 .batch-a4-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  body.printing-document .document-sheet[data-page-size="a6"] {
+    width: 100% !important;
+    min-height: 0 !important;
+  }
+
+  body.printing-profile-a6 .app-container,
+  body.printing-profile-a6 .main-content,
+  body.printing-profile-a6 .profile-workspace {
+    display: block !important;
+    width: 105mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.printing-profile-a6 .document-area {
+    width: 105mm !important;
+    min-width: 105mm !important;
+    overflow: visible !important;
+  }
+
+  body.printing-profile-a6 .a4-wrapper {
+    width: 105mm !important;
+    height: 148.5mm !important;
+    min-width: 105mm !important;
+    overflow: hidden !important;
+  }
+
+  body.printing-profile-a6 .a4,
+  body.printing-batch-a6 .batch-a6-slot .a4 {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    transform: scale(.5) !important;
+    transform-origin: top left !important;
+    page-break-after: auto !important;
+  }
+
+  body.printing-profile-a6 .a4 {
+    page-break-after: auto !important;
+  }
+
+  body.printing-batch-a6 .app-container,
+  body.printing-batch-a6 .main-content,
+  body.printing-batch-a6 .profile-workspace,
+  body.printing-batch-a6 .document-area {
+    display: block !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.printing-batch-a6 .batch-a6-sheet {
+    display: grid !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    grid-template-columns: repeat(2, 105mm);
+    grid-template-rows: repeat(2, 148.5mm);
+    overflow: hidden !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  body.printing-batch-a6 .batch-a6-slot {
+    width: 105mm !important;
+    height: 148.5mm !important;
+    overflow: hidden !important;
+  }
+
+  body.printing-batch-a6 .batch-a6-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 }

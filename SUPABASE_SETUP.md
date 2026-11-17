@@ -12,7 +12,7 @@ L'application stocke les comptes dans Supabase Auth, les profils dans `public.pr
 ## 1. Créer/configurer le projet
 
 1. Dans le tableau de bord Supabase, créez un projet ou sélectionnez le projet de destination.
-2. Ouvrez **SQL Editor** et vérifiez le projet de destination. Si les migrations n'ont pas encore été appliquées, exécutez dans l'ordre `20261116190000_profiles.sql`, `20261116213500_account_moderation.sql`, `20261116214500_terms_translations.sql`, `20261116221500_manual_billing_notifications.sql`, puis `20261116223000_account_notifications_documents.sql`. Ne réexécutez pas une migration déjà appliquée.
+2. Ouvrez **SQL Editor** et vérifiez le projet de destination. Si les migrations n'ont pas encore été appliquées, exécutez dans l'ordre `20261116190000_profiles.sql`, `20261116213500_account_moderation.sql`, `20261116214500_terms_translations.sql`, `20261116221500_manual_billing_notifications.sql`, `20261116223000_account_notifications_documents.sql`, puis `20261117120000_reversible_archives.sql`. Ne réexécutez pas une migration déjà appliquée.
 3. Dans **Authentication > URL Configuration**, ajoutez l'URL de déploiement de l'application aux URL autorisées. Ajoutez aussi `http://localhost:8000/HTML/app.html` pour le développement local si nécessaire.
 4. Configurez les fournisseurs e-mail et les modèles de confirmation/récupération de mot de passe dans Supabase Auth. L'inscription peut nécessiter la confirmation de l'adresse avant la première connexion.
 5. Dans **Project Settings > API**, copiez le Project URL et la clé publique `anon`/publishable. Ne copiez jamais la clé `service_role`.
@@ -33,9 +33,10 @@ Après vérification et sauvegarde des données :
 2. Exécutez `supabase/migrations/20261116214500_terms_translations.sql` une seule fois, après la migration de modération.
 3. Exécutez `supabase/migrations/20261116221500_manual_billing_notifications.sql` une seule fois, après les traductions des conditions.
 4. Exécutez `supabase/migrations/20261116223000_account_notifications_documents.sql` une seule fois, après la migration des paiements.
-5. Déployez `supabase/functions/account-moderation/index.ts` avec `supabase functions deploy account-moderation`.
-6. Configurez le secret d'environnement `PROFILI_A4_OWNER_EMAIL` avec l'adresse e-mail confirmée du propriétaire initial. Le propriétaire est créé lors de sa prochaine connexion. Ne placez jamais la clé `service_role` dans `JS/supabase-config.js`; la fonction utilise les variables serveur de Supabase.
-7. Testez d'abord sur un projet de développement : consentement d'un compte existant, refus RLS avant consentement, affichage des CGU dans les trois langues, suspension et blocage de l'accès, réactivation, délégation/révocation et journal d'audit.
+5. Exécutez `supabase/migrations/20261117120000_reversible_archives.sql` une seule fois après la migration des documents. Elle ajoute la corbeille réversible aux documents/modèles et exclut les profils archivés du quota actif.
+6. Déployez `supabase/functions/account-moderation/index.ts` avec `supabase functions deploy account-moderation`.
+7. Configurez le secret d'environnement `PROFILI_A4_OWNER_EMAIL` avec l'adresse e-mail confirmée du propriétaire initial. Le propriétaire est créé lors de sa prochaine connexion. Ne placez jamais la clé `service_role` dans `JS/supabase-config.js`; la fonction utilise les variables serveur de Supabase.
+8. Testez d'abord sur un projet de développement : consentement d'un compte existant, refus RLS avant consentement, affichage des CGU dans les trois langues, suspension et blocage de l'accès, réactivation, délégation/révocation et journal d'audit.
 
 Le propriétaire peut créer ou révoquer des délégués. Les délégués peuvent suspendre/réactiver les comptes non propriétaires, mais ne peuvent pas déléguer des rôles. Chaque action exige un motif et est journalisée. Les suspensions conservent les données, affichent un avis dans l'application et proposent un lien de recours.
 
@@ -61,7 +62,9 @@ La configuration des secrets Resend, le déploiement, la planification Cron et l
 
 La migration incrémentale `supabase/migrations/20261116223000_account_notifications_documents.sql` ajoute une boîte de notifications par compte, ainsi que le stockage séparé des modèles et documents. Elle reprend aussi, sans doublons, les événements déjà présents dans les journaux de modération, de paiement et la file d'e-mails. Les notifications de modération et de paiement sont créées côté base; leur consultation et le marquage comme lu sont limités au propriétaire du compte par RLS. Les comptes suspendus ou n'ayant pas accepté les conditions courantes ne peuvent pas accéder à ces données. Quand un e-mail de paiement est mis en file, son état (en attente, nouvelle tentative, accepté par Resend ou ignoré) est aussi visible dans la notification.
 
-L'éditeur de documents propose des modèles pour les rapports de paie, les chèques de paie imprimables, les badges du personnel événementiel et les billets. Chaque compte peut modifier les champs, les afficher/masquer, les réordonner, ajouter ses propres informations, ajuster la forme, l'orientation A4, les couleurs et la police, puis enregistrer ses propres modèles et documents. Les logos et photos sont stockés dans le bucket privé existant; les fichiers acceptés sont JPEG, PNG ou WebP, jusqu'à 5 Mo.
+L'éditeur de documents propose des modèles pour les rapports de paie, les chèques de paie imprimables, les badges du personnel événementiel et les billets. La liste des documents enregistrés est filtrée par catégorie et ordonnée par date de modification. Chaque compte peut modifier les champs, les afficher/masquer, les réordonner, ajouter ses propres informations, ajuster la forme, l'orientation, le format A4/A6, les couleurs et la police, puis enregistrer ses propres modèles et documents. Les logos et photos sont stockés dans le bucket privé existant; les fichiers acceptés sont JPEG, PNG ou WebP, jusqu'à 5 Mo.
+
+Les profils et les documents/modèles enregistrés sont archivés de manière réversible; leurs photos restent intactes pendant l'archivage. La corbeille permet de restaurer les éléments. L'impression groupée des profils produit un seul travail d'impression, au format A4 (un profil par page) ou en quatre fiches A6 sur une feuille A4. Le bouton de réglages du compte reste accessible même si aucun profil n'a encore été créé; l'onglet Administration n'apparaît qu'aux rôles autorisés.
 
 Le chèque et le billet sont des maquettes imprimables uniquement : aucun chèque bancaire n'est émis, aucun paiement n'est traité et aucune entrée événementielle n'est validée. Aucune migration n'a été exécutée à distance; appliquez cette migration une seule fois après celles des paiements, CGU, modération et profils.
 
@@ -81,9 +84,9 @@ Le choix de langue est mémorisé globalement dans le navigateur. Après connexi
 - L'installation PWA exige HTTPS, sauf sur localhost. Chrome/Edge affichent leur invite native lorsque les critères d'installation sont remplis; iPhone/iPad affichent les étapes Safari « Partager > Sur l'écran d'accueil », et Safari sur Mac « Fichier > Ajouter au Dock ».
 - La synchronisation temps réel requiert l'activation de Realtime dans le projet Supabase. La migration ajoute la table à la publication `supabase_realtime` lorsqu'elle existe.
 - Les noms de colonnes personnalisés, la confirmation e-mail et les URL de redirection doivent être vérifiés dans la configuration du projet choisi.
-- Le plafond de 300 profils par compte est contrôlé dans l'interface et par un trigger PostgreSQL. Il s'applique actuellement à tous les comptes : le projet n'a pas encore d'état d'abonnement permettant de distinguer les comptes gratuits et payants.
+- Le plafond de 300 profils actifs par compte est contrôlé dans l'interface et par un trigger PostgreSQL. Les profils archivés sont conservés et restaurables sans consommer ce quota.
 - La limite gratuite de 300 profils est donc effective. Les offres payantes et l'augmentation de quota au-delà de cette limite restent désactivées tant qu'un prestataire de paiement et une vérification serveur des abonnements ne sont pas configurés.
-- Les photos sont privées et servies avec des URL signées temporaires. Une suppression de profil supprime également sa photo; un échec de nettoyage est signalé.
+- Les photos sont privées et servies avec des URL signées temporaires. L’archivage d’un profil ou document conserve ses photos afin de permettre sa restauration.
 
 ## 7. Vérifications manuelles après configuration
 
@@ -95,6 +98,8 @@ Le choix de langue est mémorisé globalement dans le navigateur. Après connexi
 6. Vérifier la récupération de mot de passe avec une URL de redirection autorisée.
 7. Créer une notification de modération et une notification de paiement; vérifier qu'elles apparaissent uniquement dans le compte cible, puis tester le marquage comme lu et l'état de l'e-mail.
 8. Enregistrer un modèle et un document dans chacune des quatre catégories; actualiser la liste, se reconnecter depuis un second appareil et vérifier qu'ils sont conservés.
-9. Modifier l'ordre, la visibilité et les libellés de champs, ajouter un champ personnalisé, changer thème/orientation et vérifier l'aperçu ainsi que le PDF imprimé.
-10. Vérifier qu'un compte suspendu ne peut pas ouvrir son centre de notifications ou ses documents tant que l'accès n'est pas réactivé.
-11. Tester l'installation sur Android/Windows depuis l'invite native, sur iPhone/iPad depuis Safari et sur Mac depuis Safari; couper ensuite le réseau et vérifier que l'interface s'ouvre sans prétendre synchroniser les données cloud.
+9. Modifier l'ordre, la visibilité et les libellés de champs, ajouter un champ personnalisé, changer thème/orientation/format et vérifier que l'aperçu du résultat reste prioritaire sur mobile ainsi que le PDF imprimé.
+10. Archiver puis restaurer un profil, un modèle et un document; vérifier que leurs images sont conservées et que les profils archivés ne consomment pas le quota actif.
+11. Sélectionner des profils individuellement puis tous les sélectionner; vérifier l'impression A4 par page et la planche A6 de quatre fiches sur A4. Ouvrir les réglages sans aucun profil et confirmer que l'onglet Administration est réservé aux rôles autorisés.
+12. Vérifier qu'un compte suspendu ne peut pas ouvrir son centre de notifications ou ses documents tant que l'accès n'est pas réactivé.
+13. Tester l'installation sur Android/Windows depuis l'invite native, sur iPhone/iPad depuis Safari et sur Mac depuis Safari; couper ensuite le réseau et vérifier que l'interface s'ouvre sans prétendre synchroniser les données cloud.

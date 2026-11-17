@@ -268,6 +268,24 @@ const appEventHandlers = {
   },
   h94: function(event) {
     window.AppDocuments.refresh()
+  },
+  h95: function(event) {
+    window.AppDocuments.toggleArchiveView()
+  },
+  h96: function(event) {
+    toggleProfileArchiveView()
+  },
+  h97: function(event) {
+    window.AppDocuments.restoreDocument()
+  },
+  h99: function(event) {
+    window.AppDocuments.updatePrintFormat()
+  },
+  h100: function(event) {
+    window.AppDocuments.restoreTemplate()
+  },
+  h101: function(event) {
+    showAdminTab('admin')
   }
 };
 
