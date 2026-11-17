@@ -2733,7 +2733,15 @@ table tbody tr:hover {
       .mobile-panel-toggle,
       .mobile-drawer-close,
       .account-notification-panel,
-      .admin-settings-backdrop {
+      .account-notice-banner,
+      .account-notifications-button,
+      .admin-settings-backdrop,
+      .protected-ui-icon,
+      .header-verification-button,
+      .header-logout-button,
+      .admin-role-badge,
+      .account-admin-feedback,
+      .verification-overlay {
         display: none !important;
       }
 
@@ -2928,6 +2936,11 @@ table tbody tr:hover {
   border-left: 4px solid #2980b9;
   background: #eaf5fb;
   line-height: 1.45;
+}
+
+.account-notice-banner.account-notice-toast {
+  border-left-color: #159b63;
+  background: #eaf8f0;
 }
 
 .account-search-row,
@@ -3789,13 +3802,24 @@ body:not(.account-ui-ready) .header-verification-button {
   .mobile-panel-toggle,
   .mobile-drawer-close,
   .admin-settings-backdrop,
+  .account-notice-banner,
+  .account-notification-panel,
+  .account-notifications-button,
+  .protected-ui-icon,
   .verification-overlay,
   .header-verification-button,
   .admin-role-badge,
   .header-logout-button,
+  .account-admin-feedback,
   .btn-archive,
   .profile-restore-button {
     display: none !important;
+  }
+
+  body.printing-profile .app-container,
+  body.printing-profile .main-content,
+  body.printing-profile .profile-workspace {
+    overflow: visible !important;
   }
 }
 

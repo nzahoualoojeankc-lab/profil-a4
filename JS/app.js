@@ -267,6 +267,8 @@
     let signupAcceptanceInProgress = false;
     let accountAccess = null;
     let accountStatusTimer = null;
+    let accountNoticeTimeout = null;
+    let lastDelegationNoticeKey = null;
     let accountAccessRequest = null;
     let accountAccessRequestUserId = null;
     let adminAccounts = [];
@@ -364,19 +366,45 @@
       const notice = accountAccess.notices && accountAccess.notices[0];
       const banner = document.getElementById('accountNoticeBanner');
       if (notice && !blocked) {
-        const titles = {
-          suspended: 'Notification de suspension',
-          reactivated: 'Notification de réactivation',
-          moderator_granted: 'Délégation d’administration accordée',
-          moderator_revoked: 'Délégation d’administration révoquée'
-        };
-        document.getElementById('accountNoticeTitle').textContent =
-          window.AppI18n.t(titles[notice.action] || 'Notification du compte');
-        document.getElementById('accountNoticeText').textContent =
-          `${notice.reason} (${new Date(notice.created_at).toLocaleString(currentLanguage)})`;
-        banner.hidden = false;
+        const title = document.getElementById('accountNoticeTitle');
+        const text = document.getElementById('accountNoticeText');
+        if (notice.action === 'moderator_granted') {
+          const userId = authState.currentUser && authState.currentUser.id || '';
+          const noticeKey = `${userId}:${notice.action}:${notice.created_at}`;
+          title.textContent = window.AppI18n.t('Félicitations ! Vous êtes désormais administrateur délégué.');
+          text.textContent = window.AppI18n.t(
+            'Merci pour votre engagement : votre aide contribuera au bon fonctionnement de l’équipe.'
+          );
+          banner.classList.add('account-notice-toast');
+          if (lastDelegationNoticeKey !== noticeKey) {
+            lastDelegationNoticeKey = noticeKey;
+            if (accountNoticeTimeout) clearTimeout(accountNoticeTimeout);
+            banner.hidden = false;
+            accountNoticeTimeout = setTimeout(() => {
+              banner.hidden = true;
+              banner.classList.remove('account-notice-toast');
+              accountNoticeTimeout = null;
+            }, 9000);
+          }
+        } else {
+          if (accountNoticeTimeout) clearTimeout(accountNoticeTimeout);
+          accountNoticeTimeout = null;
+          banner.classList.remove('account-notice-toast');
+          const titles = {
+            suspended: 'Notification de suspension',
+            reactivated: 'Notification de réactivation',
+            moderator_revoked: 'Délégation d’administration révoquée'
+          };
+          title.textContent = window.AppI18n.t(titles[notice.action] || 'Notification du compte');
+          text.textContent =
+            `${notice.reason} (${new Date(notice.created_at).toLocaleString(currentLanguage)})`;
+          banner.hidden = false;
+        }
       } else {
+        if (accountNoticeTimeout) clearTimeout(accountNoticeTimeout);
+        accountNoticeTimeout = null;
         banner.hidden = true;
+        banner.classList.remove('account-notice-toast');
       }
 
       const moderationSection = document.getElementById('accountModerationSection');
@@ -421,7 +449,10 @@
       document.getElementById('shortcutsOverlay').classList.remove('show');
       document.getElementById('documentArea').innerHTML = '';
       document.getElementById('profilesList').innerHTML = '';
+      if (accountNoticeTimeout) clearTimeout(accountNoticeTimeout);
+      accountNoticeTimeout = null;
       document.getElementById('accountNoticeBanner').hidden = true;
+      document.getElementById('accountNoticeBanner').classList.remove('account-notice-toast');
       document.getElementById('adminTabButton').hidden = true;
     }
 
@@ -907,9 +938,11 @@
               document.body.classList.add('printing-profile-a6');
             }
             const restorePrintLayout = () => {
+              document.body.classList.remove('printing-profile');
               document.body.classList.remove('printing-profile-a6');
               if (printRules) printRules.remove();
             };
+            document.body.classList.add('printing-profile');
             window.addEventListener('afterprint', restorePrintLayout, { once: true });
             setTimeout(() => {
               window.print();
@@ -1612,6 +1645,9 @@
       activeUserId = null;
       authState = { currentUser: null, isLoggedIn: false };
       accountAccess = null;
+      lastDelegationNoticeKey = null;
+      if (accountNoticeTimeout) clearTimeout(accountNoticeTimeout);
+      accountNoticeTimeout = null;
       accountAccessRequest = null;
       accountAccessRequestUserId = null;
       adminAccounts = [];

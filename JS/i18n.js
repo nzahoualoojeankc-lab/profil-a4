@@ -314,6 +314,8 @@
     ['Уведомление о возобновлении доступа', 'Reactivation notice', 'Notification de réactivation'],
     ['Права администратора делегированы', 'Administrator delegation granted', 'Délégation d’administration accordée'],
     ['Делегирование прав администратора отозвано', 'Administrator delegation revoked', 'Délégation d’administration révoquée'],
+    ['Поздравляем! Теперь вы делегированный администратор.', 'Congratulations! You are now a delegated administrator.', 'Félicitations ! Vous êtes désormais administrateur délégué.'],
+    ['Спасибо за ваш вклад: ваша помощь поможет команде лучше работать.', 'Thank you for your commitment; your help will support the team.', 'Merci pour votre engagement : votre aide contribuera au bon fonctionnement de l’équipe.'],
     ['Апелляция по поводу приостановки аккаунта', 'Appeal regarding account suspension', 'Recours concernant la suspension du compte'],
     ['Введите не менее 3 символов.', 'Enter at least 3 characters.', 'Saisissez au moins 3 caractères.'],
     ['Найдено аккаунтов: ', 'Accounts found: ', 'Comptes trouvés : '],
