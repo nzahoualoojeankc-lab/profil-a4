@@ -1,4 +1,5 @@
-const CACHE_NAME = 'profili-a4-v16';
+// Increment this version with each release to refresh installed caches.
+const CACHE_NAME = 'profili-a4-v17';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -8,6 +9,7 @@ const PRECACHE_URLS = [
   './manifest.json',
   './JS/i18n.js',
   './JS/main.js',
+  './JS/update-check.js',
   './JS/pwa.js',
   './JS/app-init.js',
   './JS/app.js',

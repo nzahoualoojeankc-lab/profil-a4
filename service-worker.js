@@ -1,2 +1,2 @@
-// v16 refreshes cached assets and checks for updates without the browser HTTP cache.
-importScripts('./JS/service-worker.js?v=16');
+// v17 refreshes cached assets and checks for updates without the browser HTTP cache.
+importScripts('./JS/service-worker.js?v=17');

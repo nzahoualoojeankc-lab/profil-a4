@@ -44,7 +44,6 @@ if ('serviceWorker' in navigator) {
           }
         });
 
-        checkForUpdates();
         window.addEventListener('focus', checkForUpdates);
         window.addEventListener('online', checkForUpdates);
         document.addEventListener('visibilitychange', () => {
