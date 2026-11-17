@@ -1,6 +1,6 @@
 begin;
 
-create table public.account_notifications (
+create table if not exists public.account_notifications (
   id bigint generated always as identity primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
   category text not null check (category in ('moderation', 'payments')),
@@ -21,13 +21,13 @@ create table public.account_notifications (
   unique (source_type, source_id)
 );
 
-create index account_notifications_user_created_idx
+create index if not exists account_notifications_user_created_idx
   on public.account_notifications (user_id, created_at desc);
-create index account_notifications_unread_idx
+create index if not exists account_notifications_unread_idx
   on public.account_notifications (user_id, created_at desc)
   where read_at is null;
 
-create table public.account_document_templates (
+create table if not exists public.account_document_templates (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null check (category in (
@@ -40,10 +40,10 @@ create table public.account_document_templates (
   updated_at timestamptz not null default now()
 );
 
-create index account_document_templates_user_updated_idx
+create index if not exists account_document_templates_user_updated_idx
   on public.account_document_templates (user_id, updated_at desc);
 
-create table public.account_documents (
+create table if not exists public.account_documents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null check (category in (
@@ -56,7 +56,7 @@ create table public.account_documents (
   updated_at timestamptz not null default now()
 );
 
-create index account_documents_user_updated_idx
+create index if not exists account_documents_user_updated_idx
   on public.account_documents (user_id, updated_at desc);
 
 alter table public.account_notifications enable row level security;
@@ -74,90 +74,199 @@ grant all on table public.account_document_templates to service_role;
 grant all on table public.account_documents to service_role;
 grant usage, select on sequence public.account_notifications_id_seq to service_role;
 
-create policy "profili_a4_notifications_select"
-  on public.account_notifications for select to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_notifications'
+      and policyname = 'profili_a4_notifications_select'
+  ) then
+    execute $policy$
+      create policy "profili_a4_notifications_select"
+        on public.account_notifications for select to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
 
-create policy "profili_a4_notifications_update_read"
-  on public.account_notifications for update to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  )
-  with check (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_notifications'
+      and policyname = 'profili_a4_notifications_update_read'
+  ) then
+    execute $policy$
+      create policy "profili_a4_notifications_update_read"
+        on public.account_notifications for update to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+        with check (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
 
-create policy "profili_a4_document_templates_select"
-  on public.account_document_templates for select to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
-create policy "profili_a4_document_templates_insert"
-  on public.account_document_templates for insert to authenticated
-  with check (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
-create policy "profili_a4_document_templates_update"
-  on public.account_document_templates for update to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  )
-  with check (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
-create policy "profili_a4_document_templates_delete"
-  on public.account_document_templates for delete to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_document_templates'
+      and policyname = 'profili_a4_document_templates_select'
+  ) then
+    execute $policy$
+      create policy "profili_a4_document_templates_select"
+        on public.account_document_templates for select to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
 
-create policy "profili_a4_documents_select"
-  on public.account_documents for select to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
-create policy "profili_a4_documents_insert"
-  on public.account_documents for insert to authenticated
-  with check (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
-create policy "profili_a4_documents_update"
-  on public.account_documents for update to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  )
-  with check (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
-create policy "profili_a4_documents_delete"
-  on public.account_documents for delete to authenticated
-  using (
-    user_id = (select auth.uid())
-    and (select public.profili_a4_current_account_can_use())
-  );
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_document_templates'
+      and policyname = 'profili_a4_document_templates_insert'
+  ) then
+    execute $policy$
+      create policy "profili_a4_document_templates_insert"
+        on public.account_document_templates for insert to authenticated
+        with check (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
 
-create trigger profili_a4_document_templates_touch_updated_at
-  before update on public.account_document_templates
-  for each row execute function public.profili_a4_touch_profile_updated_at();
-create trigger profili_a4_documents_touch_updated_at
-  before update on public.account_documents
-  for each row execute function public.profili_a4_touch_profile_updated_at();
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_document_templates'
+      and policyname = 'profili_a4_document_templates_update'
+  ) then
+    execute $policy$
+      create policy "profili_a4_document_templates_update"
+        on public.account_document_templates for update to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+        with check (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
 
-create function public.profili_a4_notify_moderation_event()
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_document_templates'
+      and policyname = 'profili_a4_document_templates_delete'
+  ) then
+    execute $policy$
+      create policy "profili_a4_document_templates_delete"
+        on public.account_document_templates for delete to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_documents'
+      and policyname = 'profili_a4_documents_select'
+  ) then
+    execute $policy$
+      create policy "profili_a4_documents_select"
+        on public.account_documents for select to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_documents'
+      and policyname = 'profili_a4_documents_insert'
+  ) then
+    execute $policy$
+      create policy "profili_a4_documents_insert"
+        on public.account_documents for insert to authenticated
+        with check (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_documents'
+      and policyname = 'profili_a4_documents_update'
+  ) then
+    execute $policy$
+      create policy "profili_a4_documents_update"
+        on public.account_documents for update to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+        with check (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'account_documents'
+      and policyname = 'profili_a4_documents_delete'
+  ) then
+    execute $policy$
+      create policy "profili_a4_documents_delete"
+        on public.account_documents for delete to authenticated
+        using (
+          user_id = (select auth.uid())
+          and (select public.profili_a4_current_account_can_use())
+        )
+    $policy$;
+  end if;
+end
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.account_document_templates'::regclass
+      and tgname = 'profili_a4_document_templates_touch_updated_at'
+      and not tgisinternal
+  ) then
+    execute 'create trigger profili_a4_document_templates_touch_updated_at
+      before update on public.account_document_templates
+      for each row execute function public.profili_a4_touch_profile_updated_at()';
+  end if;
+
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.account_documents'::regclass
+      and tgname = 'profili_a4_documents_touch_updated_at'
+      and not tgisinternal
+  ) then
+    execute 'create trigger profili_a4_documents_touch_updated_at
+      before update on public.account_documents
+      for each row execute function public.profili_a4_touch_profile_updated_at()';
+  end if;
+end
+$$;
+
+create or replace function public.profili_a4_notify_moderation_event()
 returns trigger
 language plpgsql
 security definer
@@ -184,11 +293,22 @@ begin
 end;
 $$;
 
-create trigger profili_a4_moderation_notification
-  after insert on public.account_moderation_audit
-  for each row execute function public.profili_a4_notify_moderation_event();
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.account_moderation_audit'::regclass
+      and tgname = 'profili_a4_moderation_notification'
+      and not tgisinternal
+  ) then
+    execute 'create trigger profili_a4_moderation_notification
+      after insert on public.account_moderation_audit
+      for each row execute function public.profili_a4_notify_moderation_event()';
+  end if;
+end
+$$;
 
-create function public.profili_a4_notify_payment_audit()
+create or replace function public.profili_a4_notify_payment_audit()
 returns trigger
 language plpgsql
 security definer
@@ -228,11 +348,22 @@ begin
 end;
 $$;
 
-create trigger profili_a4_payment_audit_notification
-  after insert on public.account_payment_audit
-  for each row execute function public.profili_a4_notify_payment_audit();
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.account_payment_audit'::regclass
+      and tgname = 'profili_a4_payment_audit_notification'
+      and not tgisinternal
+  ) then
+    execute 'create trigger profili_a4_payment_audit_notification
+      after insert on public.account_payment_audit
+      for each row execute function public.profili_a4_notify_payment_audit()';
+  end if;
+end
+$$;
 
-create function public.profili_a4_notify_payment_email()
+create or replace function public.profili_a4_notify_payment_email()
 returns trigger
 language plpgsql
 security definer
@@ -271,11 +402,22 @@ begin
 end;
 $$;
 
-create trigger profili_a4_payment_email_notification
-  after insert on public.account_payment_email_outbox
-  for each row execute function public.profili_a4_notify_payment_email();
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.account_payment_email_outbox'::regclass
+      and tgname = 'profili_a4_payment_email_notification'
+      and not tgisinternal
+  ) then
+    execute 'create trigger profili_a4_payment_email_notification
+      after insert on public.account_payment_email_outbox
+      for each row execute function public.profili_a4_notify_payment_email()';
+  end if;
+end
+$$;
 
-create function public.profili_a4_sync_payment_email_notification()
+create or replace function public.profili_a4_sync_payment_email_notification()
 returns trigger
 language plpgsql
 security definer
@@ -296,9 +438,20 @@ begin
 end;
 $$;
 
-create trigger profili_a4_sync_payment_email_notification
-  after update of status, last_error on public.account_payment_email_outbox
-  for each row execute function public.profili_a4_sync_payment_email_notification();
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.account_payment_email_outbox'::regclass
+      and tgname = 'profili_a4_sync_payment_email_notification'
+      and not tgisinternal
+  ) then
+    execute 'create trigger profili_a4_sync_payment_email_notification
+      after update of status, last_error on public.account_payment_email_outbox
+      for each row execute function public.profili_a4_sync_payment_email_notification()';
+  end if;
+end
+$$;
 
 insert into public.account_notifications (
   user_id, category, event_type, details, source_type, source_id
