@@ -2,7 +2,7 @@
 begin;
 
 alter table public.account_terms_versions
-  add column translations jsonb not null default '{}'::jsonb;
+  add column if not exists translations jsonb not null default '{}'::jsonb;
 
 update public.account_terms_versions
 set translations = jsonb_build_object(
@@ -13,15 +13,16 @@ set translations = jsonb_build_object(
   'ru',
   'Создавая аккаунт или пользуясь им, вы соглашаетесь соблюдать правила использования приложения и принятые на себя обязательства по оплате. Владелец приложения или назначенные им администраторы могут временно приостановить доступ к вашей учётной записи при нарушении соглашения, в том числе из-за просроченного платежа, мошенничества или неэтичного поведения. Приостановка сохраняет ваши данные, указывает причину и позволяет подать апелляцию. Эта версия не регулирует окончательное удаление аккаунта, и данная функция не удаляет аккаунт окончательно.'
 )
-where version = '1.0';
+where version = '1.0'
+  and (translations is null or translations = '{}'::jsonb);
 
 alter table public.account_terms_acceptances
-  add column accepted_language text not null default 'fr'
+  add column if not exists accepted_language text not null default 'fr'
   check (accepted_language in ('fr', 'en', 'ru'));
 
-drop function public.profili_a4_accept_terms(uuid, text);
+drop function if exists public.profili_a4_accept_terms(uuid, text);
 
-create function public.profili_a4_accept_terms(
+create or replace function public.profili_a4_accept_terms(
   p_actor uuid,
   p_version text,
   p_language text
