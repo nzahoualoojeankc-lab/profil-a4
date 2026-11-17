@@ -3346,6 +3346,58 @@ table tbody tr:hover {
   gap: 8px;
 }
 
+.document-field-section {
+  display: grid;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid #d9e1e7;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.document-field-section h4,
+.document-field-section p {
+  margin: 0;
+}
+
+.document-field-section h4 {
+  font-size: .96rem;
+}
+
+.document-field-section p {
+  color: #58636c;
+  font-size: .83rem;
+  line-height: 1.4;
+}
+
+.document-field-section-content {
+  display: grid;
+  gap: 8px;
+}
+
+.document-editor-panel[data-category="payroll_report"] .document-field-section {
+  border-left: 4px solid #6ba23f;
+  background: #f7fbf4;
+}
+
+.document-editor-panel[data-category="payroll_check"] .document-field-section {
+  border-radius: 2px;
+  border-top: 3px double #24527a;
+  background: #f7f9fc;
+}
+
+.document-editor-panel[data-category="event_badge"] .document-field-section {
+  border-color: #e7c4dd;
+  border-radius: 16px;
+  background: #fff8fc;
+}
+
+.document-editor-panel[data-category="event_ticket"] .document-field-section {
+  border-left: 4px dashed #a43d86;
+  border-radius: 4px;
+  background: #fff8fc;
+}
+
 .document-field-definition {
   display: grid;
   grid-template-columns: minmax(80px, 1fr) auto auto auto auto;
@@ -3664,6 +3716,32 @@ table tbody tr:hover {
   flex-wrap: wrap;
 }
 
+.header-verification-button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid #159b63;
+  border-radius: 8px;
+  background: #fff;
+  color: #126d48;
+}
+
+body:not(.account-ui-ready) .header-verification-button {
+  display: none !important;
+}
+
+.admin-role-badge {
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: #e8f5e9;
+  color: #17643f;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.admin-role-badge[hidden] {
+  display: none !important;
+}
+
 .admin-settings-backdrop[hidden] {
   display: none !important;
 }
@@ -3712,6 +3790,8 @@ table tbody tr:hover {
   .mobile-drawer-close,
   .admin-settings-backdrop,
   .verification-overlay,
+  .header-verification-button,
+  .admin-role-badge,
   .header-logout-button,
   .btn-archive,
   .profile-restore-button {

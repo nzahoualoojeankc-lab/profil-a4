@@ -3,6 +3,11 @@
   "documentTitle": "Billet d’événement",
   "theme": "festival",
   "shape": "ticket",
+  "sections": [
+    { "id": "event", "label": "Événement", "description": "Nom et type de l’événement.", "fields": ["event", "event_type"] },
+    { "id": "attendee", "label": "Participant", "description": "Identité et présence du participant.", "fields": ["attendee", "date_time", "venue"] },
+    { "id": "ticket", "label": "Accès et tarif", "description": "Catégorie, place, numéro et prix du billet.", "fields": ["access_notes", "ticket_type", "seat", "ticket_number", "price", "currency"] }
+  ],
   "fields": [
     { "id": "event", "label": "Nom de l’événement", "type": "text" },
     { "id": "event_type", "label": "Type d’événement", "type": "text" },

@@ -3,6 +3,11 @@
   "documentTitle": "Chèque de paie — modèle imprimable",
   "theme": "corporate",
   "shape": "square",
+  "sections": [
+    { "id": "issuer", "label": "Émetteur du chèque", "description": "Organisation, banque et référence du paiement.", "fields": ["employer", "bank", "check_number", "issue_date"] },
+    { "id": "payee", "label": "Bénéficiaire et paiement", "description": "Bénéficiaire, montant et motif.", "fields": ["payee", "amount", "currency", "purpose"] },
+    { "id": "signature", "label": "Autorisation", "description": "Personne autorisée à signer la maquette.", "fields": ["signature"] }
+  ],
   "fields": [
     { "id": "employer", "label": "Organisation émettrice", "type": "text" },
     { "id": "bank", "label": "Banque", "type": "text" },

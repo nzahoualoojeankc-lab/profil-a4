@@ -41,6 +41,7 @@
               data-handler-click="h78" aria-expanded="false" aria-label="Уведомления" hidden>
         🔔 <span>Уведомления</span><span class="notification-count" id="accountNotificationCount" hidden></span>
       </button>
+      <button type="button" class="header-verification-button" data-handler-click="h102">Проверить подлинность</button>
       <div class="language-picker">
         <button type="button" class="language-toggle" data-language-toggle="app" aria-expanded="false" aria-label="Язык">Язык</button>
         <div class="language-menu" data-language-menu="app" hidden>
@@ -50,6 +51,7 @@
         </div>
       </div>
       <div class="user-badge" id="userBadge">Посетитель</div>
+      <span class="admin-role-badge" id="adminRoleBadge" hidden></span>
       <button class="admin-settings-btn protected-ui-icon" data-handler-click="h4" title="Réglages et administration" aria-label="Réglages et administration">⚙️</button>
       <button class="admin-settings-btn protected-ui-icon shortcut-key-button" data-handler-click="h5" title="Сочетания клавиш">⌨️</button>
       <button type="button" class="header-logout-button" id="headerLogoutButton" data-handler-click="h40" hidden>Выйти</button>
@@ -554,7 +556,8 @@
       </div>
       <div class="account-access-card" id="accountStatusErrorPanel" hidden>
         <h2>Vérification du compte indisponible</h2>
-        <p id="accountStatusErrorText" role="alert" data-i18n-ignore="true"></p>
+        <p id="accountStatusErrorText" role="alert"></p>
+        <p>Si vous avez déjà ajouté votre compte comme administrateur, déployez la fonction Edge account-moderation et vérifiez que account_admins.user_id correspond à l’UUID du compte connecté. Pour créer le premier propriétaire, configurez le secret PROFILI_A4_OWNER_EMAIL avec l’adresse e-mail confirmée.</p>
         <button class="login-button" data-handler-click="h70">Réessayer</button>
         <button class="login-button secondary" data-handler-click="h40">Выйти из аккаунта</button>
       </div>
@@ -779,7 +782,7 @@
           </div>
 
           <div class="document-editor-layout">
-            <aside class="document-editor-panel">
+            <aside class="document-editor-panel" id="documentEditorPanel">
               <h2>Personnaliser</h2>
               <div class="settings-item">
                 <label for="documentTemplateName">Nom du modèle</label>

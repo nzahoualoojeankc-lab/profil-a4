@@ -216,6 +216,7 @@
       currentLanguage = event.detail.language;
       updateA4LanguageLabels();
       updateCountryOptionLabels();
+      updateStorageUnitLabels();
       if (window.AppNotifications) window.AppNotifications.setLanguage();
       if (window.AppDocuments) window.AppDocuments.setLanguage();
       if (previousLanguage !== currentLanguage && !restoringAccountLanguage) {
@@ -383,6 +384,12 @@
       document.getElementById('adminTabButton').hidden = !accountAccess.role;
       document.getElementById('accountBillingSection').hidden = !accountAccess.role;
       document.getElementById('accountDelegationSection').hidden = accountAccess.role !== 'owner';
+      const roleBadge = document.getElementById('adminRoleBadge');
+      roleBadge.hidden = !accountAccess.role;
+      roleBadge.textContent = accountAccess.role === 'owner'
+        ? window.AppI18n.t('Propriétaire')
+        : accountAccess.role === 'moderator' ? window.AppI18n.t('Administrateur') : '';
+      document.getElementById('userBadge').classList.toggle('admin', !!accountAccess.role);
     }
 
     async function stopProfileAccess() {
@@ -423,7 +430,11 @@
       document.getElementById('accountTermsPanel').hidden = true;
       document.getElementById('accountSuspensionPanel').hidden = true;
       document.getElementById('accountStatusErrorPanel').hidden = false;
-      document.getElementById('accountStatusErrorText').textContent = error.message;
+      document.getElementById('accountStatusErrorText').textContent =
+        `${window.AppI18n.t('Не удалось проверить статус аккаунта: ')}${window.AppI18n.t(error.message)}`;
+      document.getElementById('adminRoleBadge').hidden = true;
+      document.getElementById('adminTabButton').hidden = true;
+      document.getElementById('userBadge').classList.remove('admin');
       gate.classList.remove('hidden');
       document.querySelector('.app-container').classList.add('hidden');
     }
@@ -1265,17 +1276,22 @@
       updateCountryOptionLabels();
     }
 
-    function toggleAdminSettings() {
+    function toggleAdminSettings(forceOpen) {
       if (!authState.isLoggedIn || !accountAccess || accountAccess.status === 'suspended' || !accountAccess.termsAccepted) return;
       const panel = document.getElementById('adminSettingsPanel');
-      const opening = !panel.classList.contains('show');
+      const opening = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('show');
       if (opening) closeMobilePanels();
-      panel.classList.toggle('show');
+      panel.classList.toggle('show', opening);
       panel.hidden = !opening;
       document.getElementById('adminSettingsBackdrop').hidden = !opening;
       document.body.classList.toggle('admin-settings-open', opening);
       if (opening && accountAccess && accountAccess.role) loadAdminAudit();
     }
+
+    window.addEventListener('profile-verification-generation-started', () => {
+      toggleAdminSettings(true);
+      showAdminTab('settings');
+    });
 
     function loadDefaultPhoto(event, gender) {
       const file = event.target.files[0];
@@ -1619,6 +1635,7 @@
       document.getElementById('accountNoticeBanner').hidden = true;
       document.getElementById('accountModerationSection').hidden = true;
       document.getElementById('adminTabButton').hidden = true;
+      document.getElementById('adminRoleBadge').hidden = true;
       document.getElementById('accountBillingSection').hidden = true;
       document.getElementById('accountDelegationSection').hidden = true;
       document.getElementById('accountSearchResults').replaceChildren();
@@ -1631,6 +1648,7 @@
       document.getElementById('currentUser').textContent = 'Гость';
       document.getElementById('userBadge').textContent = 'Посетитель';
       document.getElementById('userBadge').classList.remove('admin');
+      document.getElementById('adminRoleBadge').hidden = true;
       document.getElementById('headerLogoutButton').hidden = true;
       document.getElementById('loginPassword').value = '';
       document.getElementById('acceptAccountTerms').checked = false;
@@ -2523,16 +2541,20 @@
         allData.forEach(p => {
           totalSize += JSON.stringify(p).length;
         });
-        const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
+        const totalSizeMB = new Intl.NumberFormat(currentLanguage, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(totalSize / 1024 / 1024);
+        const storageLabel = `${totalSizeMB} ${storageUnitForLanguage(currentLanguage)}`;
         const remaining = CONFIG.MAX_PROFILES - count;
         const percentage = ((count / CONFIG.MAX_PROFILES) * 100).toFixed(1);
         document.getElementById('profilesCreated').innerText = count;
         document.getElementById('profilesRemaining').innerText = remaining;
         document.getElementById('percentageUsed').innerText = percentage + '%';
-        document.getElementById('storageUsed').innerText = totalSizeMB + ' MB';
+        document.getElementById('storageUsed').innerText = storageLabel;
         document.getElementById('storageFill').style.width = percentage + '%';
         document.getElementById('totalProfiles').textContent = count;
-        document.getElementById('dbSize').textContent = totalSizeMB + ' MB';
+        document.getElementById('dbSize').textContent = storageLabel;
         if (percentage > 90) {
           document.getElementById('storageFill').classList.add('warning');
         } else {
@@ -2542,6 +2564,19 @@
         console.error('Ошибка:', error);
         setSyncStatus('Ошибка обновления данных: ' + error.message, true);
       }
+    }
+
+    function storageUnitForLanguage(language) {
+      return { ru: 'МБ', en: 'MB', fr: 'Mo' }[language] || 'MB';
+    }
+
+    function updateStorageUnitLabels() {
+      ['storageUsed', 'dbSize'].forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        const amount = element.textContent.trim().replace(/\s*(?:MB|МБ|Mo)$/i, '');
+        element.textContent = `${amount || '0'} ${storageUnitForLanguage(currentLanguage)}`;
+      });
     }
 
     function filterProfiles() {

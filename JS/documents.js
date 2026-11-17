@@ -209,6 +209,7 @@
             || typeof parameters.documentTitle !== 'string'
             || !Object.prototype.hasOwnProperty.call(themePresets, parameters.theme)
             || !['rounded', 'square', 'ticket', 'badge'].includes(parameters.shape)
+            || !Array.isArray(parameters.sections) || !parameters.sections.length
             || !Array.isArray(parameters.fields) || !parameters.fields.length
             || !parameters.values || typeof parameters.values !== 'object' || Array.isArray(parameters.values)) {
           throw new Error(`Les paramètres de la fiche ${categoryId} sont invalides.`);
@@ -225,6 +226,28 @@
           }
           fieldIds.add(field.id);
         });
+        const sectionIds = new Set();
+        const assignedFields = new Set();
+        parameters.sections.forEach(section => {
+          if (!section || typeof section !== 'object' || Array.isArray(section)
+              || typeof section.id !== 'string' || !/^[a-z0-9_-]{1,40}$/i.test(section.id)
+              || sectionIds.has(section.id)
+              || typeof section.label !== 'string' || !section.label.trim()
+              || typeof section.description !== 'string' || !section.description.trim()
+              || !Array.isArray(section.fields) || !section.fields.length) {
+            throw new Error(`Les groupes de paramètres de la fiche ${categoryId} sont invalides.`);
+          }
+          sectionIds.add(section.id);
+          section.fields.forEach(fieldId => {
+            if (typeof fieldId !== 'string' || !fieldIds.has(fieldId) || assignedFields.has(fieldId)) {
+              throw new Error(`Les groupes de paramètres de la fiche ${categoryId} sont invalides.`);
+            }
+            assignedFields.add(fieldId);
+          });
+        });
+        if (assignedFields.size !== fieldIds.size) {
+          throw new Error(`Les groupes de paramètres de la fiche ${categoryId} ne couvrent pas tous les champs.`);
+        }
         if (Object.entries(parameters.values).some(([key, value]) => !fieldIds.has(key) && key !== 'currency'
             || typeof value !== 'string')) {
           throw new Error(`Les valeurs par défaut de la fiche ${categoryId} sont invalides.`);
@@ -255,6 +278,10 @@
           documentTitle: parameters.documentTitle,
           theme: parameters.theme,
           shape: parameters.shape,
+          sections: parameters.sections.map(section => ({
+            ...section,
+            fields: section.fields.slice()
+          })),
           fields: parameters.fields.map(field => ({
             id: field.id,
             label: field.label,
@@ -321,7 +348,48 @@
     values.replaceChildren();
     if (!current) return;
 
+    const category = current.category;
+    const presetSections = categoryPresets[category].sections;
+    definitions.dataset.category = category;
+    values.dataset.category = category;
+    const groups = presetSections.map(section => ({
+      ...section,
+      fields: current.design.fields.filter(field => section.fields.includes(field.id))
+    })).filter(section => section.fields.length);
+    const groupedFieldIds = new Set(presetSections.flatMap(section => section.fields));
+    const extraFields = current.design.fields.filter(field => !groupedFieldIds.has(field.id));
+    if (extraFields.length) {
+      groups.push({
+        id: 'custom',
+        label: t('Informations complémentaires'),
+        description: t('Champs ajoutés à cette fiche.'),
+        fields: extraFields
+      });
+    }
+
+    const targets = new Map();
+    groups.forEach(section => {
+      const createSection = host => {
+        const container = document.createElement('section');
+        container.className = `document-field-section document-field-section--${category} document-field-section--${section.id}`;
+        const heading = document.createElement('h4');
+        heading.textContent = t(section.label);
+        const description = document.createElement('p');
+        description.textContent = t(section.description);
+        const content = document.createElement('div');
+        content.className = 'document-field-section-content';
+        container.append(heading, description, content);
+        host.appendChild(container);
+        return content;
+      };
+      const definitionTarget = createSection(definitions);
+      const valueTarget = createSection(values);
+      section.fields.forEach(field => targets.set(field.id, { definitionTarget, valueTarget }));
+    });
+
     current.design.fields.forEach((field, index) => {
+      const target = targets.get(field.id);
+      if (!target) return;
       const row = document.createElement('div');
       row.className = 'document-field-definition';
 
@@ -374,7 +442,7 @@
       remove.dataset.documentFieldRemove = field.id;
       remove.dataset.handlerClick = 'h89';
       row.appendChild(remove);
-      definitions.appendChild(row);
+      target.definitionTarget.appendChild(row);
 
       const valueGroup = document.createElement('div');
       valueGroup.className = 'document-value-field';
@@ -412,7 +480,7 @@
         input.id = `document-value-${field.id}`;
         valueGroup.append(valueLabel, input);
       }
-      values.appendChild(valueGroup);
+      target.valueTarget.appendChild(valueGroup);
     });
   }
 
@@ -420,6 +488,7 @@
     if (!current) return;
     const safeCurrent = getSafeCurrent();
     renderSelectors();
+    document.getElementById('documentEditorPanel').dataset.category = safeCurrent.category;
     document.getElementById('documentTemplateName').value = safeCurrent.templateName;
     document.getElementById('documentTitle').value = safeCurrent.documentTitle;
     renderThemeControls();

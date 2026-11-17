@@ -3,6 +3,11 @@
   "documentTitle": "Récapitulatif de rémunération",
   "theme": "source",
   "shape": "rounded",
+  "sections": [
+    { "id": "organisation", "label": "Organisation", "description": "Identité et logo de l’employeur.", "fields": ["logo", "employer"] },
+    { "id": "employee", "label": "Salarié", "description": "Identité et période de rémunération.", "fields": ["person_photo", "employee", "phone", "period"] },
+    { "id": "earnings", "label": "Rémunération", "description": "Montants, ajustements et total calculé.", "fields": ["order_count", "orders_sum", "bonuses", "fines", "total", "currency"] }
+  ],
   "fields": [
     { "id": "logo", "label": "Logo de l’organisation", "type": "image" },
     { "id": "employer", "label": "Organisation", "type": "text" },

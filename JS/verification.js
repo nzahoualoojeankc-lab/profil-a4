@@ -35,6 +35,13 @@
     return code.createDataURL(5, 4);
   }
 
+  function verificationError(error) {
+    if (['42P01', '42883', 'PGRST202', 'PGRST205'].includes(error.code)) {
+      return `${t('La vérification nécessite l’application de la migration Supabase dédiée.')} (${error.code})`;
+    }
+    return error.message || t('Résultat de vérification indisponible.');
+  }
+
   function showGeneratedResult(row) {
     const result = document.getElementById('verificationGeneratedResult');
     document.getElementById('verificationGeneratedSerial').value = row.serial_number;
@@ -61,6 +68,7 @@
     if (!sourceId) throw new Error(t('Enregistrez d’abord la fiche ou le document.'));
     document.getElementById('verificationGeneratedResult').hidden = true;
     setFeedback('verificationGenerateFeedback', '', false);
+    window.dispatchEvent(new CustomEvent('profile-verification-generation-started'));
     const settings = selectedSettings();
     const { data, error } = await client.rpc('profili_a4_create_profile_verification', {
       p_source_type: sourceType,
@@ -68,7 +76,7 @@
       p_valid_until: settings.validUntil,
       p_placement: settings.placement
     });
-    if (error) throw error;
+    if (error) throw new Error(verificationError(error));
     const row = Array.isArray(data) ? data[0] : data;
     if (!row || !row.serial_number) {
       throw new Error(t('Le serveur n’a pas retourné le numéro de série créé.'));
@@ -203,7 +211,7 @@
       result.hidden = false;
       setFeedback('verificationScanFeedback', '', false);
     } catch (error) {
-      setFeedback('verificationScanFeedback', error.message, true);
+      setFeedback('verificationScanFeedback', verificationError(error), true);
     }
   }
 

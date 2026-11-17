@@ -1,5 +1,5 @@
 // Increment this version with each release to refresh installed caches.
-const CACHE_NAME = 'profili-a4-v19';
+const CACHE_NAME = 'profili-a4-v20';
 const PRECACHE_URLS = [
   './',
   './index.html',

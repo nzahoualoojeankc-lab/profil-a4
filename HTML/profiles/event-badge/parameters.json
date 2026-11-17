@@ -3,6 +3,11 @@
   "documentTitle": "Badge du personnel événementiel",
   "theme": "festival",
   "shape": "badge",
+  "sections": [
+    { "id": "event", "label": "Événement et organisation", "description": "Identité visuelle et organisateur.", "fields": ["logo", "event", "organization"] },
+    { "id": "staff", "label": "Identité du personnel", "description": "Photo, nom et fonction du membre du personnel.", "fields": ["person_photo", "staff_name", "role"] },
+    { "id": "validity", "label": "Validité et contact", "description": "Période de validité et coordonnées du badge.", "fields": ["validity", "badge_number", "contact"] }
+  ],
   "fields": [
     { "id": "logo", "label": "Logo de l’organisation", "type": "image" },
     { "id": "event", "label": "Événement", "type": "text" },
