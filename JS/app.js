@@ -143,6 +143,22 @@
       });
     }
 
+    const profileDefaultFields = {
+      phone: { elementId: 'personPhone', phrase: 'Телефон не указан' },
+      orderQuantity: { elementId: 'orderQuantity', phrase: 'Количество' },
+      orderQuantityValue: { elementId: 'orderQuantityValue', phrase: 'не указано' }
+    };
+    const profileDefaultValues = {
+      phone: ['Телефон не указан', 'Phone not specified', 'Téléphone non renseigné'],
+      orderQuantity: ['Количество', 'Quantity', 'Quantité'],
+      orderQuantityValue: ['не указано', 'not specified', 'non renseigné']
+    };
+
+    function isProfileDefaultValue(value, field) {
+      const normalized = String(value || '').trim().toLowerCase();
+      return profileDefaultValues[field].some(item => item.toLowerCase() === normalized);
+    }
+
     function updateA4LanguageLabels() {
       const genderElement = document.getElementById('personGender');
       if (genderElement && genderElement.dataset.userEdited !== 'true') {
@@ -157,6 +173,13 @@
           ? localizedCountryName(country)
           : window.AppI18n.t('Страна');
       }
+
+      Object.entries(profileDefaultFields).forEach(([field, defaults]) => {
+        const element = document.getElementById(defaults.elementId);
+        if (element && element.dataset.profileDefault === field) {
+          element.textContent = window.AppI18n.t(defaults.phrase);
+        }
+      });
     }
 
     let a4ResizeObserver = null;
@@ -1601,15 +1624,16 @@
       try {
         loadUserSettings();
         setSyncStatus('Загрузка облачных профилей…', false);
+        window.AppVerification.initialize(supabaseClient, user.id);
         await initializeApp();
         await Promise.all([
           window.AppNotifications.initialize(supabaseClient, user.id, user.email),
           window.AppDocuments.initialize(supabaseClient, user.id)
         ]);
-        window.AppVerification.initialize(supabaseClient, user.id);
         const verificationSerial = new URLSearchParams(window.location.search).get('verify');
         if (verificationSerial) window.AppVerification.openVerifier(verificationSerial);
       } catch (error) {
+        window.AppVerification.reset();
         activeUserId = null;
         db = null;
         throw error;
@@ -2261,13 +2285,25 @@
         const countryLabel = profile.country
           ? localizedCountryName(profile.country)
           : window.AppI18n.t('Страна');
+        const phoneIsDefault = isProfileDefaultValue(profile.phone, 'phone');
+        const orderQuantityIsDefault = isProfileDefaultValue(profile.orderQuantity, 'orderQuantity');
+        const orderQuantityValueIsDefault = isProfileDefaultValue(profile.orderQuantityValue, 'orderQuantityValue');
+        const phoneText = phoneIsDefault
+          ? window.AppI18n.t(profileDefaultFields.phone.phrase)
+          : profile.phone;
+        const orderQuantityText = orderQuantityIsDefault
+          ? window.AppI18n.t(profileDefaultFields.orderQuantity.phrase)
+          : profile.orderQuantity;
+        const orderQuantityValueText = orderQuantityValueIsDefault
+          ? window.AppI18n.t(profileDefaultFields.orderQuantityValue.phrase)
+          : profile.orderQuantityValue;
         document.getElementById('documentArea').innerHTML = `
           <div class="a4-wrapper">
             <div class="a4" id="page" data-profile-id="${escapeHtml(id)}" style="font-family: ${escapeHtml(fontFamily)}">
               <div class="card top">
                 <div class="person-info">
                   <div class="name" contenteditable="true" id="personName" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.name}px">${escapeHtml(profile.name)}</div>
-                  <div class="phone" contenteditable="true" id="personPhone" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.phone}px">${escapeHtml(profile.phone)}</div>
+                  <div class="phone" contenteditable="true" id="personPhone" ${phoneIsDefault ? 'data-profile-default="phone"' : ''} oninput="delete this.dataset.profileDefault; saveProfileDebounced()" style="font-size: ${appState.sizes.phone}px">${escapeHtml(phoneText)}</div>
                   <div class="person-details">
                     <span contenteditable="true" id="personGender" data-gender-value="${escapeHtml(profile.gender || 'other')}" oninput="this.dataset.userEdited='true'; saveProfileDebounced()">${genderLabel}</span>
                     <span> • </span>
@@ -2279,8 +2315,8 @@
               <div class="card">
                 <div class="date" contenteditable="true" id="dateRange" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.date}px">${escapeHtml(profile.dateRange)}</div>
                 <div class="row" style="font-size: ${appState.sizes.row}px">
-                  <span contenteditable="true" id="orderQuantity" oninput="saveProfileDebounced()">${escapeHtml(profile.orderQuantity)}</span>
-                  <span contenteditable="true" id="orderQuantityValue" oninput="saveProfileDebounced()">${escapeHtml(profile.orderQuantityValue)}</span>
+                  <span contenteditable="true" id="orderQuantity" ${orderQuantityIsDefault ? 'data-profile-default="orderQuantity"' : ''} oninput="delete this.dataset.profileDefault; saveProfileDebounced()">${escapeHtml(orderQuantityText)}</span>
+                  <span contenteditable="true" id="orderQuantityValue" ${orderQuantityValueIsDefault ? 'data-profile-default="orderQuantityValue"' : ''} oninput="delete this.dataset.profileDefault; saveProfileDebounced()">${escapeHtml(orderQuantityValueText)}</span>
                 </div>
                 <div class="row" style="font-size: ${appState.sizes.row}px">
                   <span>Сумма</span>
