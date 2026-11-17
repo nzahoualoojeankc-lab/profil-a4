@@ -1,15 +1,15 @@
 begin;
 
 alter table public.account_documents
-  add column archived_at timestamptz;
+  add column if not exists archived_at timestamptz;
 
 alter table public.account_document_templates
-  add column archived_at timestamptz;
+  add column if not exists archived_at timestamptz;
 
-create index account_documents_user_archive_updated_idx
+create index if not exists account_documents_user_archive_updated_idx
   on public.account_documents (user_id, archived_at, updated_at desc);
 
-create index account_document_templates_user_archive_updated_idx
+create index if not exists account_document_templates_user_archive_updated_idx
   on public.account_document_templates (user_id, archived_at, updated_at desc);
 
 create or replace function public.profili_a4_enforce_profile_limit()
