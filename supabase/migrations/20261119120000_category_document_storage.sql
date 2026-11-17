@@ -1,6 +1,6 @@
 begin;
 
-create table public.account_payroll_reports (
+create table if not exists public.account_payroll_reports (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'payroll_report' check (category = 'payroll_report'),
@@ -12,7 +12,7 @@ create table public.account_payroll_reports (
   archived_at timestamptz
 );
 
-create table public.account_payroll_report_templates (
+create table if not exists public.account_payroll_report_templates (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'payroll_report' check (category = 'payroll_report'),
@@ -24,7 +24,7 @@ create table public.account_payroll_report_templates (
   archived_at timestamptz
 );
 
-create table public.account_payroll_checks (
+create table if not exists public.account_payroll_checks (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'payroll_check' check (category = 'payroll_check'),
@@ -36,7 +36,7 @@ create table public.account_payroll_checks (
   archived_at timestamptz
 );
 
-create table public.account_payroll_check_templates (
+create table if not exists public.account_payroll_check_templates (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'payroll_check' check (category = 'payroll_check'),
@@ -48,7 +48,7 @@ create table public.account_payroll_check_templates (
   archived_at timestamptz
 );
 
-create table public.account_event_badges (
+create table if not exists public.account_event_badges (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'event_badge' check (category = 'event_badge'),
@@ -60,7 +60,7 @@ create table public.account_event_badges (
   archived_at timestamptz
 );
 
-create table public.account_event_badge_templates (
+create table if not exists public.account_event_badge_templates (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'event_badge' check (category = 'event_badge'),
@@ -72,7 +72,7 @@ create table public.account_event_badge_templates (
   archived_at timestamptz
 );
 
-create table public.account_event_tickets (
+create table if not exists public.account_event_tickets (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'event_ticket' check (category = 'event_ticket'),
@@ -84,7 +84,7 @@ create table public.account_event_tickets (
   archived_at timestamptz
 );
 
-create table public.account_event_ticket_templates (
+create table if not exists public.account_event_ticket_templates (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   category text not null default 'event_ticket' check (category = 'event_ticket'),
@@ -113,27 +113,63 @@ begin
       ('account_event_ticket_templates', 'event_ticket')
     ) as category_tables(table_name, category_name)
   loop
-    execute format('create index %I on public.%I (user_id, archived_at, updated_at desc)',
+    execute format('create index if not exists %I on public.%I (user_id, archived_at, updated_at desc)',
       table_name || '_user_archive_updated_idx', table_name);
     execute format('alter table public.%I enable row level security', table_name);
     execute format('revoke all on table public.%I from public, anon, authenticated', table_name);
     execute format('grant select, insert, update, delete on table public.%I to authenticated', table_name);
     execute format('grant all on table public.%I to service_role', table_name);
-    execute format(
-      'create policy %I on public.%I for select to authenticated using (user_id = (select auth.uid()) and (select public.profili_a4_current_account_can_use()))',
-      'profili_a4_' || table_name || '_select', table_name);
-    execute format(
-      'create policy %I on public.%I for insert to authenticated with check (user_id = (select auth.uid()) and category = %L and (select public.profili_a4_current_account_can_use()))',
-      'profili_a4_' || table_name || '_insert', table_name, category_name);
-    execute format(
-      'create policy %I on public.%I for update to authenticated using (user_id = (select auth.uid()) and (select public.profili_a4_current_account_can_use())) with check (user_id = (select auth.uid()) and category = %L and (select public.profili_a4_current_account_can_use()))',
-      'profili_a4_' || table_name || '_update', table_name, category_name);
-    execute format(
-      'create policy %I on public.%I for delete to authenticated using (user_id = (select auth.uid()) and (select public.profili_a4_current_account_can_use()))',
-      'profili_a4_' || table_name || '_delete', table_name);
-    execute format(
-      'create trigger %I before update on public.%I for each row execute function public.profili_a4_touch_profile_updated_at()',
-      'profili_a4_' || table_name || '_touch_updated_at', table_name);
+
+    if not exists (
+      select 1 from pg_policies
+      where schemaname = 'public' and tablename = table_name
+        and policyname = 'profili_a4_' || table_name || '_select'
+    ) then
+      execute format(
+        'create policy %I on public.%I for select to authenticated using (user_id = (select auth.uid()) and (select public.profili_a4_current_account_can_use()))',
+        'profili_a4_' || table_name || '_select', table_name);
+    end if;
+
+    if not exists (
+      select 1 from pg_policies
+      where schemaname = 'public' and tablename = table_name
+        and policyname = 'profili_a4_' || table_name || '_insert'
+    ) then
+      execute format(
+        'create policy %I on public.%I for insert to authenticated with check (user_id = (select auth.uid()) and category = %L and (select public.profili_a4_current_account_can_use()))',
+        'profili_a4_' || table_name || '_insert', table_name, category_name);
+    end if;
+
+    if not exists (
+      select 1 from pg_policies
+      where schemaname = 'public' and tablename = table_name
+        and policyname = 'profili_a4_' || table_name || '_update'
+    ) then
+      execute format(
+        'create policy %I on public.%I for update to authenticated using (user_id = (select auth.uid()) and (select public.profili_a4_current_account_can_use())) with check (user_id = (select auth.uid()) and category = %L and (select public.profili_a4_current_account_can_use()))',
+        'profili_a4_' || table_name || '_update', table_name, category_name);
+    end if;
+
+    if not exists (
+      select 1 from pg_policies
+      where schemaname = 'public' and tablename = table_name
+        and policyname = 'profili_a4_' || table_name || '_delete'
+    ) then
+      execute format(
+        'create policy %I on public.%I for delete to authenticated using (user_id = (select auth.uid()) and (select public.profili_a4_current_account_can_use()))',
+        'profili_a4_' || table_name || '_delete', table_name);
+    end if;
+
+    if not exists (
+      select 1 from pg_trigger
+      where tgrelid = to_regclass('public.' || table_name)
+        and tgname = 'profili_a4_' || table_name || '_touch_updated_at'
+        and not tgisinternal
+    ) then
+      execute format(
+        'create trigger %I before update on public.%I for each row execute function public.profili_a4_touch_profile_updated_at()',
+        'profili_a4_' || table_name || '_touch_updated_at', table_name);
+    end if;
   end loop;
 end
 $$;
