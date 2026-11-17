@@ -1,7 +1,7 @@
 -- Manual monthly dues and transactional email outbox, separate from moderation.
 begin;
 
-create table public.account_payment_dues (
+create table if not exists public.account_payment_dues (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete restrict,
   billing_period date not null check (billing_period = date_trunc('month', billing_period)::date),
@@ -22,15 +22,15 @@ create table public.account_payment_dues (
   )
 );
 
-create unique index account_payment_one_active_period
+create unique index if not exists account_payment_one_active_period
   on public.account_payment_dues (user_id, billing_period)
   where status <> 'cancelled';
 
-create index account_payment_due_date_idx
+create index if not exists account_payment_due_date_idx
   on public.account_payment_dues (due_date)
   where status = 'due';
 
-create table public.account_payment_audit (
+create table if not exists public.account_payment_audit (
   id bigint generated always as identity primary key,
   payment_id uuid not null references public.account_payment_dues (id) on delete restrict,
   actor_id uuid references auth.users (id) on delete set null,
@@ -41,7 +41,7 @@ create table public.account_payment_audit (
   created_at timestamptz not null default now()
 );
 
-create table public.account_payment_email_outbox (
+create table if not exists public.account_payment_email_outbox (
   id uuid primary key default gen_random_uuid(),
   payment_id uuid not null references public.account_payment_dues (id) on delete restrict,
   event_type text not null check (event_type in ('receipt', 'late_reminder', 'receipt_void')),
@@ -69,7 +69,7 @@ grant all on table public.account_payment_audit to service_role;
 grant all on table public.account_payment_email_outbox to service_role;
 grant usage, select on sequence public.account_payment_audit_id_seq to service_role;
 
-create function public.profili_a4_payment_actor_can_manage(p_actor uuid)
+create or replace function public.profili_a4_payment_actor_can_manage(p_actor uuid)
 returns boolean
 language sql
 stable
@@ -82,7 +82,7 @@ as $$
   ) and public.profili_a4_account_is_usable(p_actor);
 $$;
 
-create function public.profili_a4_record_payment_due(
+create or replace function public.profili_a4_record_payment_due(
   p_actor uuid,
   p_target uuid,
   p_period date,
@@ -170,7 +170,7 @@ begin
 end;
 $$;
 
-create function public.profili_a4_mark_payment_paid(
+create or replace function public.profili_a4_mark_payment_paid(
   p_actor uuid,
   p_payment_id uuid,
   p_reason text
@@ -223,7 +223,7 @@ begin
 end;
 $$;
 
-create function public.profili_a4_cancel_payment_due(
+create or replace function public.profili_a4_cancel_payment_due(
   p_actor uuid,
   p_payment_id uuid,
   p_reason text
@@ -279,7 +279,7 @@ begin
 end;
 $$;
 
-create function public.profili_a4_enqueue_payment_reminders()
+create or replace function public.profili_a4_enqueue_payment_reminders()
 returns integer
 language plpgsql
 security definer
@@ -305,7 +305,7 @@ begin
 end;
 $$;
 
-create function public.profili_a4_claim_payment_emails(p_limit integer default 50)
+create or replace function public.profili_a4_claim_payment_emails(p_limit integer default 50)
 returns table (
   id uuid,
   payment_id uuid,
@@ -336,7 +336,7 @@ as $$
     outbox.reminder_number, outbox.due_date;
 $$;
 
-create function public.profili_a4_complete_payment_email(
+create or replace function public.profili_a4_complete_payment_email(
   p_id uuid,
   p_status text,
   p_error text default null
