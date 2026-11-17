@@ -1,4 +1,4 @@
-const CACHE_NAME = 'profili-a4-v15';
+const CACHE_NAME = 'profili-a4-v16';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -50,14 +50,15 @@ self.addEventListener('message', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => Promise.all(
+  event.waitUntil((async () => {
+    const cacheNames = await caches.keys();
+    await Promise.all(
       cacheNames
         .filter(cacheName => cacheName.startsWith('profili-a4-') && cacheName !== CACHE_NAME)
         .map(cacheName => caches.delete(cacheName))
-    ))
-  );
-  self.clients.claim();
+    );
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', event => {
@@ -88,11 +89,33 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cacheKey = new Request(url.origin + url.pathname);
-    const cachedResponse = await cache.match(cacheKey);
-    if (cachedResponse) return cachedResponse;
+    const networkFirst = /\.(?:html|css|js)$/i.test(url.pathname);
 
-    const response = await fetch(request);
-    if (response.ok) await cache.put(cacheKey, response.clone());
+    if (!networkFirst) {
+      const cachedResponse = await cache.match(cacheKey);
+      if (cachedResponse) return cachedResponse;
+
+      const response = await fetch(request);
+      if (response.ok) await cache.put(cacheKey, response.clone());
+      return response;
+    }
+
+    let response;
+    try {
+      response = await fetch(request);
+    } catch (error) {
+      const cachedResponse = await cache.match(cacheKey);
+      if (cachedResponse) return cachedResponse;
+      throw error;
+    }
+
+    if (response.ok) {
+      try {
+        await cache.put(cacheKey, response.clone());
+      } catch (error) {
+        console.error('Could not update the offline cache for an app resource.', error);
+      }
+    }
     return response;
   })());
 });
