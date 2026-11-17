@@ -1,0 +1,53 @@
+.document-sheet[data-category="event_badge"] .event-badge-heading {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-brand img {
+  max-width: 70px;
+  max-height: 55px;
+  object-fit: contain;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-identity {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-photo {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border: 3px solid var(--document-accent);
+  border-radius: 50%;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-role {
+  color: var(--document-main);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.document-sheet[data-category="event_badge"] .event-badge-details {
+  display: grid;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #d5dce2;
+  text-align: center;
+}

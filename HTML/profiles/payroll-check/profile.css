@@ -1,0 +1,48 @@
+.document-sheet[data-category="payroll_check"] .payroll-check-heading {
+  padding-bottom: 18px;
+  border-bottom: 3px double var(--document-main);
+  text-align: center;
+}
+
+.document-sheet[data-category="payroll_check"] .payroll-check-employer {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.document-sheet[data-category="payroll_check"] .payroll-check-bank-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--document-main);
+}
+
+.document-sheet[data-category="payroll_check"] .payroll-check-payment {
+  display: grid;
+  gap: 14px;
+  padding: 18px 0;
+}
+
+.document-sheet[data-category="payroll_check"] .payroll-check-amount {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--document-main);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.document-sheet[data-category="payroll_check"] .payroll-check-signature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #d5dce2;
+}
+
+.document-sheet[data-category="payroll_check"] .payroll-check-signature [data-profile-field-slot="signature"] {
+  min-height: 48px;
+  border-bottom: 1px solid #78838b;
+}

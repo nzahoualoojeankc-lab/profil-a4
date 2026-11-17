@@ -286,6 +286,43 @@ const appEventHandlers = {
   },
   h101: function(event) {
     showAdminTab('admin')
+  },
+  h102: function(event) {
+    window.AppVerification.openVerifier()
+  },
+  h103: async function(event) {
+    const profileId = document.getElementById('page')?.dataset.profileId;
+    if (!profileId) {
+      document.getElementById('verificationGenerateFeedback').textContent =
+        window.AppI18n.t('Sélectionnez une fiche avant de créer son code.');
+      document.getElementById('verificationGenerateFeedback').classList.add('error');
+      return;
+    }
+    if (!await saveProfile()) return;
+    try {
+      await window.AppVerification.generate('profile', profileId);
+    } catch (error) {
+      document.getElementById('verificationGenerateFeedback').textContent = error.message;
+      document.getElementById('verificationGenerateFeedback').classList.add('error');
+    }
+  },
+  h104: function(event) {
+    window.AppDocuments.generateVerification()
+  },
+  h105: function(event) {
+    window.AppVerification.closeVerifier()
+  },
+  h106: function(event) {
+    window.AppVerification.verifySerial()
+  },
+  h107: function(event) {
+    window.AppVerification.startCamera()
+  },
+  h108: function(event) {
+    window.AppVerification.stopCamera()
+  },
+  h109: function(event) {
+    window.AppVerification.scanImage(this.files && this.files[0])
   }
 };
 

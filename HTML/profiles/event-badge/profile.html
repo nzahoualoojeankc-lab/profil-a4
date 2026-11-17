@@ -1,0 +1,27 @@
+<template id="profile-template" data-profile-category="event_badge">
+  <article class="document-sheet" data-profile-sheet>
+    <div class="document-preview-card event-badge-layout" data-profile-card>
+      <header class="event-badge-heading">
+        <div class="event-badge-brand" data-profile-field-slot="logo"></div>
+        <p class="document-preview-category" data-profile-category-label></p>
+        <div data-profile-field-slot="event"></div>
+        <h2 data-profile-title></h2>
+      </header>
+
+      <section class="event-badge-identity" aria-label="Identité du membre du personnel">
+        <div class="event-badge-photo" data-profile-field-slot="person_photo"></div>
+        <div class="event-badge-name" data-profile-field-slot="staff_name"></div>
+        <div class="event-badge-role" data-profile-field-slot="role"></div>
+        <div data-profile-field-slot="organization"></div>
+      </section>
+
+      <footer class="event-badge-details">
+        <div data-profile-field-slot="validity"></div>
+        <div data-profile-field-slot="badge_number"></div>
+        <div data-profile-field-slot="contact"></div>
+      </footer>
+
+      <section class="document-preview-fields custom-profile-fields" data-profile-fields></section>
+    </div>
+  </article>
+</template>

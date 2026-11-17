@@ -25,6 +25,12 @@
     event_badge: 'Badge du personnel',
     event_ticket: 'Billet d’événement'
   };
+  const categoryStorage = {
+    payroll_report: { documents: 'account_payroll_reports', templates: 'account_payroll_report_templates' },
+    payroll_check: { documents: 'account_payroll_checks', templates: 'account_payroll_check_templates' },
+    event_badge: { documents: 'account_event_badges', templates: 'account_event_badge_templates' },
+    event_ticket: { documents: 'account_event_tickets', templates: 'account_event_ticket_templates' }
+  };
 
   let client = null;
   let userId = null;
@@ -40,6 +46,9 @@
   let pendingDeletePaths = new Set();
   const signedUrls = new Map();
   const signedUrlRequests = new Map();
+  let profileTemplates = {};
+  let categoryPresets = {};
+  let profileTemplateLoadError = null;
 
   function t(text) {
     return window.AppI18n.t(text);
@@ -49,98 +58,14 @@
     return { id, label, type, visible: true, ...extra };
   }
 
+  function storageFor(category) {
+    const storage = categoryStorage[category];
+    if (!storage) throw new Error(t('Type de document non pris en charge.'));
+    return storage;
+  }
+
   function makePreset(category) {
-    const definitions = {
-      payroll_report: {
-        templateName: 'Rapport de paie',
-        documentTitle: 'Récapitulatif de rémunération',
-        theme: 'source',
-        shape: 'rounded',
-        fields: [
-          makeField('logo', 'Logo de l’organisation', 'image'),
-          makeField('employer', 'Organisation', 'text'),
-          makeField('person_photo', 'Photo du salarié', 'image'),
-          makeField('employee', 'Nom du salarié', 'text'),
-          makeField('phone', 'Téléphone', 'text'),
-          makeField('period', 'Période de rémunération', 'text'),
-          makeField('order_count', 'Nombre de commandes', 'number'),
-          makeField('orders_sum', 'Montant des commandes', 'money'),
-          makeField('bonuses', 'Primes', 'money'),
-          makeField('fines', 'Pénalités (saisir une valeur négative)', 'money'),
-          makeField('total', 'Montant total à payer', 'computed', { formula: 'payroll_total' })
-        ],
-        values: {
-          logo: '',
-          employer: '',
-          person_photo: '',
-          employee: '',
-          phone: '',
-          period: '',
-          order_count: '',
-          orders_sum: '0',
-          bonuses: '0',
-          fines: '0',
-          currency: '₽'
-        }
-      },
-      payroll_check: {
-        templateName: 'Chèque de paie imprimable',
-        documentTitle: 'Chèque de paie — modèle imprimable',
-        theme: 'corporate',
-        shape: 'square',
-        fields: [
-          makeField('employer', 'Organisation émettrice', 'text'),
-          makeField('bank', 'Banque', 'text'),
-          makeField('check_number', 'Numéro du chèque', 'text'),
-          makeField('issue_date', 'Date d’émission', 'date'),
-          makeField('payee', 'Bénéficiaire', 'text'),
-          makeField('amount', 'Montant', 'money'),
-          makeField('currency', 'Devise', 'text'),
-          makeField('purpose', 'Motif', 'text'),
-          makeField('signature', 'Signature autorisée', 'text')
-        ],
-        values: { employer: '', bank: '', check_number: '', issue_date: '', payee: '', amount: '', currency: '₽', purpose: '', signature: '' }
-      },
-      event_badge: {
-        templateName: 'Badge du personnel',
-        documentTitle: 'Badge du personnel événementiel',
-        theme: 'festival',
-        shape: 'badge',
-        fields: [
-          makeField('logo', 'Logo de l’organisation', 'image'),
-          makeField('event', 'Événement', 'text'),
-          makeField('person_photo', 'Photo du membre du personnel', 'image'),
-          makeField('staff_name', 'Nom du membre du personnel', 'text'),
-          makeField('role', 'Fonction', 'text'),
-          makeField('organization', 'Organisation', 'text'),
-          makeField('validity', 'Dates de validité', 'text'),
-          makeField('badge_number', 'Numéro du badge', 'text'),
-          makeField('contact', 'Contact', 'text')
-        ],
-        values: { logo: '', event: '', person_photo: '', staff_name: '', role: '', organization: '', validity: '', badge_number: '', contact: '' }
-      },
-      event_ticket: {
-        templateName: 'Billet d’événement',
-        documentTitle: 'Billet d’événement',
-        theme: 'festival',
-        shape: 'ticket',
-        fields: [
-          makeField('event', 'Nom de l’événement', 'text'),
-          makeField('event_type', 'Type d’événement', 'text'),
-          makeField('attendee', 'Nom du participant', 'text'),
-          makeField('date_time', 'Date et heure', 'text'),
-          makeField('venue', 'Lieu', 'text'),
-          makeField('ticket_type', 'Catégorie du billet', 'text'),
-          makeField('seat', 'Place', 'text'),
-          makeField('ticket_number', 'Numéro du billet', 'text'),
-          makeField('price', 'Prix', 'money'),
-          makeField('currency', 'Devise', 'text'),
-          makeField('access_notes', 'Informations complémentaires', 'text')
-        ],
-        values: { event: '', event_type: '', attendee: '', date_time: '', venue: '', ticket_type: '', seat: '', ticket_number: '', price: '', currency: '₽', access_notes: '' }
-      }
-    };
-    const preset = definitions[category];
+    const preset = categoryPresets[category];
     if (!preset) throw new Error(t('Type de document non pris en charge.'));
     const theme = { ...themePresets[preset.theme], preset: preset.theme, font: fontFamilies[0] };
     return {
@@ -155,9 +80,13 @@
         orientation: 'portrait',
         shape: preset.shape,
         theme,
-        fields: preset.fields
+        fields: preset.fields.map(field => ({
+          ...field,
+          label: t(field.label),
+          visible: field.visible !== false
+        }))
       },
-      values: preset.values
+      values: { ...preset.values }
     };
   }
 
@@ -233,6 +162,113 @@
     item.value = value;
     item.textContent = label;
     select.appendChild(item);
+  }
+
+  async function loadProfileTemplates() {
+    profileTemplates = {};
+    categoryPresets = {};
+    profileTemplateLoadError = null;
+    try {
+      const catalogResponse = await fetch('profiles/catalog.json');
+      if (!catalogResponse.ok) throw new Error(`Impossible de charger le catalogue des fiches (${catalogResponse.status}).`);
+      const catalog = await catalogResponse.json();
+      if (!catalog || !Array.isArray(catalog.categories)) {
+        throw new Error('Le catalogue des fiches est invalide.');
+      }
+
+      const entries = new Map();
+      catalog.categories.forEach(entry => {
+        if (!entry || !Object.prototype.hasOwnProperty.call(categoryLabels, entry.id)
+            || typeof entry.template !== 'string'
+            || !/^profiles\/[a-z0-9-]+\/profile\.html$/.test(entry.template)
+            || typeof entry.parameters !== 'string'
+            || !/^profiles\/[a-z0-9-]+\/parameters\.json$/.test(entry.parameters)
+            || typeof entry.stylesheet !== 'string'
+            || !/^profiles\/[a-z0-9-]+\/profile\.css$/.test(entry.stylesheet)
+            || entries.has(entry.id)) {
+          throw new Error('Le catalogue contient une catégorie ou un chemin de fiche invalide.');
+        }
+        entries.set(entry.id, entry);
+      });
+      if (entries.size !== Object.keys(categoryLabels).length) {
+        throw new Error('Le catalogue ne contient pas toutes les catégories de fiches.');
+      }
+
+      const loaded = await Promise.all([...entries.entries()].map(async ([categoryId, entry]) => {
+        const [templateResponse, parametersResponse] = await Promise.all([
+          fetch(entry.template),
+          fetch(entry.parameters)
+        ]);
+        if (!templateResponse.ok) throw new Error(`Impossible de charger le modèle ${entry.template} (${templateResponse.status}).`);
+        if (!parametersResponse.ok) throw new Error(`Impossible de charger les paramètres ${entry.parameters} (${parametersResponse.status}).`);
+        const parameters = await parametersResponse.json();
+        const documentTemplate = new DOMParser().parseFromString(await templateResponse.text(), 'text/html')
+          .querySelector('template#profile-template');
+        if (!parameters || typeof parameters !== 'object' || Array.isArray(parameters)
+            || typeof parameters.templateName !== 'string'
+            || typeof parameters.documentTitle !== 'string'
+            || !Object.prototype.hasOwnProperty.call(themePresets, parameters.theme)
+            || !['rounded', 'square', 'ticket', 'badge'].includes(parameters.shape)
+            || !Array.isArray(parameters.fields) || !parameters.fields.length
+            || !parameters.values || typeof parameters.values !== 'object' || Array.isArray(parameters.values)) {
+          throw new Error(`Les paramètres de la fiche ${categoryId} sont invalides.`);
+        }
+        const fieldIds = new Set();
+        parameters.fields.forEach(field => {
+          if (!field || typeof field !== 'object' || Array.isArray(field)
+              || typeof field.id !== 'string' || !/^[a-z0-9_-]{1,60}$/i.test(field.id)
+              || fieldIds.has(field.id) || typeof field.label !== 'string' || !field.label.trim()
+              || !['text', 'number', 'money', 'date', 'image', 'computed'].includes(field.type)
+              || (field.type === 'computed' && field.formula !== 'payroll_total')
+              || (field.type !== 'computed' && field.formula)) {
+            throw new Error(`Les champs de la fiche ${categoryId} sont invalides.`);
+          }
+          fieldIds.add(field.id);
+        });
+        if (Object.entries(parameters.values).some(([key, value]) => !fieldIds.has(key) && key !== 'currency'
+            || typeof value !== 'string')) {
+          throw new Error(`Les valeurs par défaut de la fiche ${categoryId} sont invalides.`);
+        }
+        if (!documentTemplate || documentTemplate.dataset.profileCategory !== categoryId
+            || !documentTemplate.content.querySelector('[data-profile-sheet]')
+            || !documentTemplate.content.querySelector('[data-profile-card]')
+            || !documentTemplate.content.querySelector('[data-profile-category-label]')
+            || !documentTemplate.content.querySelector('[data-profile-title]')
+            || !documentTemplate.content.querySelector('[data-profile-fields]')
+            || parameters.fields.some(field => !documentTemplate.content.querySelector(`[data-profile-field-slot="${field.id}"]`))) {
+          throw new Error(`Le modèle de fiche ${categoryId} ne respecte pas sa structure.`);
+        }
+        const existingStylesheet = document.head.querySelector(`link[data-profile-stylesheet="${categoryId}"]`);
+        if (existingStylesheet) existingStylesheet.remove();
+        const stylesheet = document.createElement('link');
+        stylesheet.rel = 'stylesheet';
+        stylesheet.href = entry.stylesheet;
+        stylesheet.dataset.profileStylesheet = categoryId;
+        document.head.appendChild(stylesheet);
+        return [categoryId, { documentTemplate, parameters }];
+      }));
+      profileTemplates = Object.fromEntries(loaded.map(([categoryId, data]) => [categoryId, data.documentTemplate]));
+      categoryPresets = Object.fromEntries(loaded.map(([categoryId, data]) => {
+        const parameters = data.parameters;
+        return [categoryId, {
+          templateName: parameters.templateName,
+          documentTitle: parameters.documentTitle,
+          theme: parameters.theme,
+          shape: parameters.shape,
+          fields: parameters.fields.map(field => ({
+            id: field.id,
+            label: field.label,
+            type: field.type,
+            visible: true,
+            ...(field.formula ? { formula: field.formula } : {})
+          })),
+          values: parameters.values
+        }];
+      }));
+    } catch (error) {
+      profileTemplateLoadError = error;
+      console.error('Could not load profile category templates.', error);
+    }
   }
 
   function renderSelectors() {
@@ -441,8 +477,32 @@
     const host = document.getElementById('documentPreview');
     host.replaceChildren();
     if (!current) return;
-    const sheet = document.createElement('article');
-    sheet.className = 'document-sheet';
+    const template = profileTemplates[current.category];
+    const fragment = template ? template.content.cloneNode(true) : null;
+    const sheet = fragment
+      ? fragment.querySelector('[data-profile-sheet]')
+      : document.createElement('article');
+    const card = fragment
+      ? fragment.querySelector('[data-profile-card]')
+      : document.createElement('div');
+    const category = fragment
+      ? fragment.querySelector('[data-profile-category-label]')
+      : document.createElement('p');
+    const heading = fragment
+      ? fragment.querySelector('[data-profile-title]')
+      : document.createElement('h2');
+    const fields = fragment
+      ? fragment.querySelector('[data-profile-fields]')
+      : document.createElement('div');
+    let disclaimer = fragment && fragment.querySelector('[data-profile-disclaimer]');
+
+    if (!fragment) {
+      sheet.className = 'document-sheet';
+      card.className = 'document-preview-card';
+      category.className = 'document-preview-category';
+      fields.className = 'document-preview-fields';
+      card.append(category, heading, fields);
+    }
     sheet.dataset.category = current.category;
     sheet.dataset.orientation = current.design.orientation;
     sheet.dataset.shape = current.design.shape;
@@ -455,17 +515,16 @@
     sheet.style.setProperty('--document-text', theme.text);
     sheet.style.setProperty('--document-font', theme.font);
 
-    const card = document.createElement('div');
-    card.className = 'document-preview-card';
-    const category = document.createElement('p');
-    category.className = 'document-preview-category';
+    fields.replaceChildren();
     category.textContent = t(categoryLabels[current.category]);
-    const heading = document.createElement('h2');
     heading.textContent = current.documentTitle;
-    const fields = document.createElement('div');
-    fields.className = 'document-preview-fields';
 
-    current.design.fields.filter(field => field.visible).forEach(field => {
+    current.design.fields.forEach(field => {
+      const slot = fragment && fragment.querySelector(`[data-profile-field-slot="${field.id}"]`);
+      if (!field.visible) {
+        if (slot) slot.replaceChildren();
+        return;
+      }
       const row = document.createElement('div');
       row.className = `document-preview-field${field.type === 'image' ? ' image-field' : ''}`;
       if (field.type === 'image') {
@@ -482,7 +541,7 @@
           placeholder.textContent = t('Image facultative');
           row.appendChild(placeholder);
         }
-        fields.appendChild(row);
+        (slot || fields).appendChild(row);
         return;
       }
       const label = document.createElement('strong');
@@ -490,23 +549,32 @@
       const value = document.createElement('span');
       value.textContent = fieldValue(field);
       row.append(label, value);
-      fields.appendChild(row);
+      (slot || fields).appendChild(row);
     });
 
-    card.append(category, heading, fields);
     if (current.category === 'payroll_check') {
-      const disclaimer = document.createElement('p');
-      disclaimer.className = 'document-disclaimer';
+      if (!disclaimer) {
+        disclaimer = document.createElement('p');
+        disclaimer.className = 'document-disclaimer';
+        card.appendChild(disclaimer);
+      }
       disclaimer.textContent = t('Maquette imprimable uniquement : ce document n’est pas un chèque bancaire valide.');
-      card.appendChild(disclaimer);
+      disclaimer.hidden = false;
     } else if (current.category === 'event_ticket') {
-      const disclaimer = document.createElement('p');
-      disclaimer.className = 'document-disclaimer';
+      if (!disclaimer) {
+        disclaimer = document.createElement('p');
+        disclaimer.className = 'document-disclaimer';
+        card.appendChild(disclaimer);
+      }
       disclaimer.textContent = t('Modèle de billet imprimable : l’application ne valide pas les entrées et ne traite pas les paiements.');
-      card.appendChild(disclaimer);
+      disclaimer.hidden = false;
     }
-    sheet.appendChild(card);
+    if (!fragment) sheet.appendChild(card);
     host.appendChild(sheet);
+    if (currentDocumentId && window.AppVerification) {
+      window.AppVerification.attachToSheet(sheet, 'document', currentDocumentId)
+        .catch(error => setFeedback(error.message, true));
+    }
     updatePrintRules();
   }
 
@@ -534,53 +602,62 @@
   async function loadCollections() {
     if (!client || !userId) return;
     const requestedUserId = userId;
-    const [templateResult, documentResult] = await Promise.all([
-      client.from('account_document_templates')
-        .select('id,category,name,design,updated_at,archived_at')
-        .eq('user_id', requestedUserId)
-        .order('updated_at', { ascending: false })
-        .limit(100),
-      client.from('account_documents')
-        .select('id,category,title,payload,updated_at,archived_at')
-        .eq('user_id', requestedUserId)
-        .order('updated_at', { ascending: false })
-        .limit(300)
-    ]);
-    if (templateResult.error) throw templateResult.error;
-    if (documentResult.error) throw documentResult.error;
+    const groupedResults = await Promise.all(Object.values(categoryStorage).map(async storage => {
+      const [templateResult, documentResult] = await Promise.all([
+        client.from(storage.templates)
+          .select('id,category,name,design,updated_at,archived_at')
+          .eq('user_id', requestedUserId)
+          .order('updated_at', { ascending: false })
+          .limit(100),
+        client.from(storage.documents)
+          .select('id,category,title,payload,updated_at,archived_at')
+          .eq('user_id', requestedUserId)
+          .order('updated_at', { ascending: false })
+          .limit(300)
+      ]);
+      if (templateResult.error) throw templateResult.error;
+      if (documentResult.error) throw documentResult.error;
+      return { templates: templateResult.data || [], documents: documentResult.data || [] };
+    }));
     if (userId !== requestedUserId) return;
-    templates = templateResult.data || [];
-    documents = documentResult.data || [];
+    templates = groupedResults.flatMap(group => group.templates)
+      .sort((left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime())
+      .slice(0, 100);
+    documents = groupedResults.flatMap(group => group.documents)
+      .sort((left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime())
+      .slice(0, 300);
     renderCollections();
   }
 
   function subscribe() {
     if (!client || !userId) return;
     const subscribedUserId = userId;
-    channel = client.channel(`account-documents:${subscribedUserId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'account_document_templates',
-        filter: `user_id=eq.${subscribedUserId}`
-      }, () => loadCollections().catch(error => setFeedback(error.message, true)))
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'account_documents',
-        filter: `user_id=eq.${subscribedUserId}`
-      }, () => loadCollections().catch(error => setFeedback(error.message, true)))
-      .subscribe(status => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setFeedback(t('La synchronisation des documents est indisponible.'), true);
-        }
+    let subscription = client.channel(`account-documents:${subscribedUserId}`);
+    Object.values(categoryStorage).forEach(storage => {
+      [storage.templates, storage.documents].forEach(table => {
+        subscription = subscription.on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table,
+          filter: `user_id=eq.${subscribedUserId}`
+        }, () => loadCollections().catch(error => setFeedback(error.message, true)));
       });
+    });
+    channel = subscription.subscribe(status => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        setFeedback(t('La synchronisation des documents est indisponible.'), true);
+      }
+    });
   }
 
   async function initialize(supabaseClient, accountId) {
     await reset();
     client = supabaseClient;
     userId = accountId;
+    await loadProfileTemplates();
+    if (profileTemplateLoadError) {
+      throw new Error(`Les ressources des catégories de fiches ne sont pas disponibles : ${profileTemplateLoadError.message}`);
+    }
     current = makePreset('payroll_report');
     currentTemplateId = null;
     currentDocumentId = null;
@@ -618,11 +695,15 @@
     draftId = null;
     templates = [];
     documents = [];
+    profileTemplates = {};
+    categoryPresets = {};
     channel = null;
     draftImagePaths = new Set();
     pendingDeletePaths = new Set();
     signedUrls.clear();
     signedUrlRequests.clear();
+    profileTemplates = {};
+    profileTemplateLoadError = null;
     const workspace = document.getElementById('documentsWorkspace');
     if (workspace) workspace.hidden = true;
     const profileWorkspace = document.getElementById('profileWorkspace');
@@ -916,13 +997,14 @@
         name: templateName,
         design: current.design
       };
+      const { templates: templateTable } = storageFor(current.category);
       let result;
       if (currentTemplateId) {
-        result = await client.from('account_document_templates').update(row)
+        result = await client.from(templateTable).update(row)
           .eq('id', currentTemplateId).eq('user_id', userId)
           .select('id,category,name,design,updated_at').single();
       } else {
-        result = await client.from('account_document_templates').insert(row)
+        result = await client.from(templateTable).insert(row)
           .select('id,category,name,design,updated_at').single();
       }
       if (result.error) throw result.error;
@@ -959,11 +1041,12 @@
         throw new Error(t('Le document est trop volumineux pour être enregistré.'));
       }
       const row = { id, user_id: userId, category: current.category, title, payload };
+      const { documents: documentTable } = storageFor(current.category);
       const result = currentDocumentId
-        ? await client.from('account_documents').update(row)
+        ? await client.from(documentTable).update(row)
           .eq('id', currentDocumentId).eq('user_id', userId)
           .select('id,category,title,payload,updated_at').single()
-        : await client.from('account_documents').insert(row)
+        : await client.from(documentTable).insert(row)
           .select('id,category,title,payload,updated_at').single();
       if (result.error) throw result.error;
       currentDocumentId = result.data.id;
@@ -993,7 +1076,8 @@
     }
     if (!window.confirm(t('Placer ce document dans la corbeille ? Vous pourrez le restaurer plus tard.'))) return;
     if (!await saveDocument()) return;
-    const { error } = await client.from('account_documents').update({ archived_at: new Date().toISOString() })
+    const { documents: documentTable } = storageFor(current.category);
+    const { error } = await client.from(documentTable).update({ archived_at: new Date().toISOString() })
       .eq('id', currentDocumentId).eq('user_id', userId).is('archived_at', null);
     if (error) {
       setFeedback(error.message, true);
@@ -1009,7 +1093,8 @@
       setFeedback(t('Choisissez un document archivé à restaurer.'), true);
       return;
     }
-    const { error } = await client.from('account_documents').update({ archived_at: null })
+    const { documents: documentTable } = storageFor(current.category);
+    const { error } = await client.from(documentTable).update({ archived_at: null })
       .eq('id', currentDocumentId).eq('user_id', userId).not('archived_at', 'is', null);
     if (error) {
       setFeedback(error.message, true);
@@ -1041,7 +1126,8 @@
     }
     if (!window.confirm(t('Placer ce modèle dans la corbeille ? Vous pourrez le restaurer plus tard.'))) return;
     if (!await saveTemplate()) return;
-    const { error } = await client.from('account_document_templates').update({ archived_at: new Date().toISOString() })
+    const { templates: templateTable } = storageFor(current.category);
+    const { error } = await client.from(templateTable).update({ archived_at: new Date().toISOString() })
       .eq('id', currentTemplateId).eq('user_id', userId).is('archived_at', null);
     if (error) {
       setFeedback(error.message, true);
@@ -1061,7 +1147,8 @@
       setFeedback(t('Choisissez un modèle archivé à restaurer.'), true);
       return;
     }
-    const { error } = await client.from('account_document_templates').update({ archived_at: null })
+    const { templates: templateTable } = storageFor(current.category);
+    const { error } = await client.from(templateTable).update({ archived_at: null })
       .eq('id', currentTemplateId).eq('user_id', userId).not('archived_at', 'is', null);
     if (error) {
       setFeedback(error.message, true);
@@ -1091,9 +1178,17 @@
     document.getElementById('documentsWorkspaceTab').setAttribute('aria-selected', 'false');
   }
 
-  function print() {
+  async function print() {
     if (!current) return;
     updatePrintRules();
+    const sheet = document.querySelector('#documentPreview .document-sheet');
+    if (currentDocumentId && sheet && window.AppVerification) {
+      try {
+        await window.AppVerification.attachToSheet(sheet, 'document', currentDocumentId);
+      } catch (error) {
+        setFeedback(error.message, true);
+      }
+    }
     document.body.classList.add('printing-document');
     const restore = () => document.body.classList.remove('printing-document');
     window.addEventListener('afterprint', restore, { once: true });
@@ -1109,6 +1204,19 @@
     try {
       await loadCollections();
       setFeedback('', false);
+    } catch (error) {
+      setFeedback(error.message, true);
+    }
+  }
+
+  async function generateVerification() {
+    if (!current) {
+      setFeedback(t('Choisissez un document à enregistrer.'), true);
+      return;
+    }
+    if (!await saveDocument()) return;
+    try {
+      await window.AppVerification.generate('document', currentDocumentId);
     } catch (error) {
       setFeedback(error.message, true);
     }
@@ -1143,6 +1251,14 @@
     restoreDocument,
     restoreTemplate,
     updatePrintFormat,
+    generateVerification,
     setLanguage
   };
+
+  window.addEventListener('profile-verification-updated', event => {
+    if (event.detail?.sourceType === 'document'
+        && String(currentDocumentId) === event.detail.sourceId) {
+      renderPreview();
+    }
+  });
 })();

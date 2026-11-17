@@ -232,6 +232,32 @@
       <!-- ВКЛАДКА 4: ПАРАМЕТРЫ -->
       <div id="settings-tab" class="admin-tab-content">
         <div class="settings-section">
+          <h3>Authentification des fiches et billets</h3>
+          <p>Un numéro unique et son QR code permettent de vérifier qu’une fiche a bien été enregistrée. Les détails sont réservés au créateur et aux administrateurs.</p>
+          <div class="settings-item">
+            <label for="verificationValidUntil">Valide jusqu’au (facultatif)</label>
+            <input id="verificationValidUntil" type="date">
+          </div>
+          <div class="settings-item">
+            <label for="verificationPlacement">Afficher le numéro et le QR code sur la fiche</label>
+            <select id="verificationPlacement">
+              <option value="footer">Pied de page</option>
+              <option value="header">En-tête</option>
+              <option value="none">Ne pas afficher</option>
+            </select>
+          </div>
+          <div class="settings-item">
+            <button type="button" class="secondary" data-handler-click="h102">Vérifier l’authenticité</button>
+          </div>
+          <p id="verificationGenerateFeedback" class="account-admin-feedback" role="status" aria-live="polite"></p>
+          <div id="verificationGeneratedResult" class="verification-generated-result" hidden>
+            <img id="verificationGeneratedQr" alt="QR code de vérification">
+            <label for="verificationGeneratedSerial">Numéro de série</label>
+            <input id="verificationGeneratedSerial" type="text" readonly>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h3>🔧 Действия</h3>
           <div class="settings-item">
             <button data-handler-click="h16" class="danger">🔄 Сбросить цвета</button>
@@ -710,6 +736,7 @@
           <div class="control-group">
             <label>🖨️ Действия</label>
             <button class="print-btn full-width-button" data-handler-click="h51">Печать</button>
+            <button type="button" class="secondary full-width-button" data-handler-click="h103">Créer le numéro et le QR code</button>
           </div>
           <div class="control-group">
             <label for="profilePrintFormat">Format de la fiche</label>
@@ -823,6 +850,7 @@
                 <button type="button" data-handler-click="h91">Supprimer le modèle</button>
                 <button type="button" class="secondary" id="templateRestoreButton" data-handler-click="h100" hidden>Restaurer le modèle</button>
                 <button type="button" class="secondary" data-handler-click="h90">Enregistrer le document</button>
+                <button type="button" class="secondary" data-handler-click="h104">Créer le numéro et le QR code</button>
                 <button type="button" class="danger" data-handler-click="h92">Supprimer le document</button>
                 <button type="button" class="print-btn" data-handler-click="h93">Imprimer / PDF</button>
               </div>
@@ -838,6 +866,38 @@
         </section>
       </div>
     </div>
+  </div>
+
+  <div id="verificationPage" class="verification-overlay" hidden>
+    <section class="verification-panel" role="dialog" aria-modal="true" aria-labelledby="verificationPageTitle">
+      <header class="verification-header">
+        <h2 id="verificationPageTitle">Vérification d’authenticité</h2>
+        <button type="button" class="secondary" data-handler-click="h105">Fermer</button>
+      </header>
+      <p>Choisissez le numéro de série ou scannez le QR code. La consultation nécessite un compte connecté.</p>
+      <div class="verification-methods">
+        <section class="verification-method">
+          <h3>Par numéro de série</h3>
+          <label for="verificationSerialInput">Numéro de série</label>
+          <div class="verification-serial-row">
+            <input id="verificationSerialInput" type="text" autocomplete="off" maxlength="40">
+            <button type="button" data-handler-click="h106">Vérifier</button>
+          </div>
+        </section>
+        <section class="verification-method">
+          <h3>Par QR code</h3>
+          <video id="verificationCamera" playsinline muted hidden></video>
+          <div class="verification-camera-actions">
+            <button type="button" class="secondary" data-handler-click="h107">Ouvrir la caméra</button>
+            <button type="button" class="secondary" data-handler-click="h108" hidden>Arrêter la caméra</button>
+          </div>
+          <label for="verificationQrImage">Ou choisir une image du QR code</label>
+          <input id="verificationQrImage" type="file" accept="image/*" data-handler-change="h109">
+          <p id="verificationScanFeedback" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+      <div id="verificationResult" class="verification-result" role="status" aria-live="polite" hidden></div>
+    </section>
   </div>
 
   <!-- МОДАЛИ -->
@@ -917,6 +977,9 @@
   <script src="../JS/app.js"></script>
   <script src="../JS/notifications.js"></script>
   <script src="../JS/documents.js"></script>
+  <script src="../JS/vendor/qrcode-generator.js"></script>
+  <script src="../JS/vendor/jsQR.js"></script>
+  <script src="../JS/verification.js"></script>
   <script src="../JS/app-events.js"></script>
 
 </body>

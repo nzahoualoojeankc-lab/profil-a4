@@ -1,0 +1,34 @@
+<template id="profile-template" data-profile-category="event_ticket">
+  <article class="document-sheet" data-profile-sheet>
+    <div class="document-preview-card event-ticket-layout" data-profile-card>
+      <div class="event-ticket-main">
+        <header class="event-ticket-heading">
+          <p class="document-preview-category" data-profile-category-label></p>
+          <h2 data-profile-title></h2>
+          <div data-profile-field-slot="event"></div>
+          <div data-profile-field-slot="event_type"></div>
+        </header>
+
+        <section class="event-ticket-attendee" aria-label="Informations du participant">
+          <div data-profile-field-slot="attendee"></div>
+          <div data-profile-field-slot="date_time"></div>
+          <div data-profile-field-slot="venue"></div>
+          <div data-profile-field-slot="access_notes"></div>
+        </section>
+      </div>
+
+      <aside class="event-ticket-stub" aria-label="Détails du billet">
+        <div data-profile-field-slot="ticket_type"></div>
+        <div data-profile-field-slot="seat"></div>
+        <div data-profile-field-slot="ticket_number"></div>
+        <div class="event-ticket-price">
+          <div data-profile-field-slot="price"></div>
+          <div data-profile-field-slot="currency"></div>
+        </div>
+        <p class="document-disclaimer" data-profile-disclaimer hidden></p>
+      </aside>
+
+      <section class="document-preview-fields custom-profile-fields" data-profile-fields></section>
+    </div>
+  </article>
+</template>

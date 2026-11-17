@@ -1,0 +1,28 @@
+{
+  "templateName": "Chèque de paie imprimable",
+  "documentTitle": "Chèque de paie — modèle imprimable",
+  "theme": "corporate",
+  "shape": "square",
+  "fields": [
+    { "id": "employer", "label": "Organisation émettrice", "type": "text" },
+    { "id": "bank", "label": "Banque", "type": "text" },
+    { "id": "check_number", "label": "Numéro du chèque", "type": "text" },
+    { "id": "issue_date", "label": "Date d’émission", "type": "date" },
+    { "id": "payee", "label": "Bénéficiaire", "type": "text" },
+    { "id": "amount", "label": "Montant", "type": "money" },
+    { "id": "currency", "label": "Devise", "type": "text" },
+    { "id": "purpose", "label": "Motif", "type": "text" },
+    { "id": "signature", "label": "Signature autorisée", "type": "text" }
+  ],
+  "values": {
+    "employer": "",
+    "bank": "",
+    "check_number": "",
+    "issue_date": "",
+    "payee": "",
+    "amount": "",
+    "currency": "₽",
+    "purpose": "",
+    "signature": ""
+  }
+}

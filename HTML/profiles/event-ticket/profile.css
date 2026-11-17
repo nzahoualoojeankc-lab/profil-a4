@@ -1,0 +1,42 @@
+.document-sheet[data-category="event_ticket"] .event-ticket-main {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.document-sheet[data-category="event_ticket"] .event-ticket-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.document-sheet[data-category="event_ticket"] .event-ticket-attendee {
+  display: grid;
+  gap: 8px;
+}
+
+.document-sheet[data-category="event_ticket"] .event-ticket-stub {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 14px;
+  border-left: 2px dashed var(--document-main);
+}
+
+.document-sheet[data-category="event_ticket"] .event-ticket-price {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.document-sheet[data-category="event_ticket"] .event-ticket-stub .document-disclaimer {
+  margin-top: auto;
+}
+
+@media (min-width: 620px) {
+  .document-sheet[data-category="event_ticket"] .event-ticket-layout {
+    grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr);
+    gap: 18px;
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "categories": [
+    {
+      "id": "payroll_report",
+      "folder": "payroll-report",
+      "label": "Rapport de paie",
+      "template": "profiles/payroll-report/profile.html",
+      "parameters": "profiles/payroll-report/parameters.json",
+      "stylesheet": "profiles/payroll-report/profile.css",
+      "themes": ["source", "corporate"]
+    },
+    {
+      "id": "payroll_check",
+      "folder": "payroll-check",
+      "label": "Chèque de paie",
+      "template": "profiles/payroll-check/profile.html",
+      "parameters": "profiles/payroll-check/parameters.json",
+      "stylesheet": "profiles/payroll-check/profile.css",
+      "themes": ["corporate"]
+    },
+    {
+      "id": "event_badge",
+      "folder": "event-badge",
+      "label": "Badge du personnel",
+      "template": "profiles/event-badge/profile.html",
+      "parameters": "profiles/event-badge/parameters.json",
+      "stylesheet": "profiles/event-badge/profile.css",
+      "themes": ["festival", "corporate"]
+    },
+    {
+      "id": "event_ticket",
+      "folder": "event-ticket",
+      "label": "Billet d’événement",
+      "template": "profiles/event-ticket/profile.html",
+      "parameters": "profiles/event-ticket/parameters.json",
+      "stylesheet": "profiles/event-ticket/profile.css",
+      "themes": ["festival", "corporate"]
+    }
+  ]
+}

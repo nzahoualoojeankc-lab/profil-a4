@@ -1,0 +1,28 @@
+{
+  "templateName": "Badge du personnel",
+  "documentTitle": "Badge du personnel événementiel",
+  "theme": "festival",
+  "shape": "badge",
+  "fields": [
+    { "id": "logo", "label": "Logo de l’organisation", "type": "image" },
+    { "id": "event", "label": "Événement", "type": "text" },
+    { "id": "person_photo", "label": "Photo du membre du personnel", "type": "image" },
+    { "id": "staff_name", "label": "Nom du membre du personnel", "type": "text" },
+    { "id": "role", "label": "Fonction", "type": "text" },
+    { "id": "organization", "label": "Organisation", "type": "text" },
+    { "id": "validity", "label": "Dates de validité", "type": "text" },
+    { "id": "badge_number", "label": "Numéro du badge", "type": "text" },
+    { "id": "contact", "label": "Contact", "type": "text" }
+  ],
+  "values": {
+    "logo": "",
+    "event": "",
+    "person_photo": "",
+    "staff_name": "",
+    "role": "",
+    "organization": "",
+    "validity": "",
+    "badge_number": "",
+    "contact": ""
+  }
+}

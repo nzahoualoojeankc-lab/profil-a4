@@ -1,0 +1,33 @@
+<template id="profile-template" data-profile-category="payroll_check">
+  <article class="document-sheet" data-profile-sheet>
+    <div class="document-preview-card payroll-check-layout" data-profile-card>
+      <header class="payroll-check-heading">
+        <p class="document-preview-category" data-profile-category-label></p>
+        <h2 data-profile-title></h2>
+        <div class="payroll-check-employer" data-profile-field-slot="employer"></div>
+      </header>
+
+      <section class="payroll-check-bank-details" aria-label="Émission du chèque">
+        <div data-profile-field-slot="bank"></div>
+        <div data-profile-field-slot="check_number"></div>
+        <div data-profile-field-slot="issue_date"></div>
+      </section>
+
+      <section class="payroll-check-payment" aria-label="Bénéficiaire et montant">
+        <div data-profile-field-slot="payee"></div>
+        <div class="payroll-check-amount">
+          <div data-profile-field-slot="amount"></div>
+          <div data-profile-field-slot="currency"></div>
+        </div>
+        <div data-profile-field-slot="purpose"></div>
+      </section>
+
+      <footer class="payroll-check-signature">
+        <div data-profile-field-slot="signature"></div>
+        <p class="document-disclaimer" data-profile-disclaimer hidden></p>
+      </footer>
+
+      <section class="document-preview-fields custom-profile-fields" data-profile-fields></section>
+    </div>
+  </article>
+</template>

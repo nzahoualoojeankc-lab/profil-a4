@@ -1,0 +1,33 @@
+{
+  "templateName": "Rapport de paie",
+  "documentTitle": "Récapitulatif de rémunération",
+  "theme": "source",
+  "shape": "rounded",
+  "fields": [
+    { "id": "logo", "label": "Logo de l’organisation", "type": "image" },
+    { "id": "employer", "label": "Organisation", "type": "text" },
+    { "id": "person_photo", "label": "Photo du salarié", "type": "image" },
+    { "id": "employee", "label": "Nom du salarié", "type": "text" },
+    { "id": "phone", "label": "Téléphone", "type": "text" },
+    { "id": "period", "label": "Période de rémunération", "type": "text" },
+    { "id": "order_count", "label": "Nombre de commandes", "type": "number" },
+    { "id": "orders_sum", "label": "Montant des commandes", "type": "money" },
+    { "id": "bonuses", "label": "Primes", "type": "money" },
+    { "id": "fines", "label": "Pénalités (saisir une valeur négative)", "type": "money" },
+    { "id": "total", "label": "Montant total à payer", "type": "computed", "formula": "payroll_total" },
+    { "id": "currency", "label": "Devise", "type": "text" }
+  ],
+  "values": {
+    "logo": "",
+    "employer": "",
+    "person_photo": "",
+    "employee": "",
+    "phone": "",
+    "period": "",
+    "order_count": "",
+    "orders_sum": "0",
+    "bonuses": "0",
+    "fines": "0",
+    "currency": "₽"
+  }
+}

@@ -1,0 +1,36 @@
+<template id="profile-template" data-profile-category="payroll_report">
+  <article class="document-sheet" data-profile-sheet>
+    <div class="document-preview-card payroll-report-layout" data-profile-card>
+      <header class="payroll-report-heading">
+        <div class="payroll-report-brand" data-profile-field-slot="logo"></div>
+        <div>
+          <p class="document-preview-category" data-profile-category-label></p>
+          <h2 data-profile-title></h2>
+        </div>
+        <div class="payroll-report-employer" data-profile-field-slot="employer"></div>
+      </header>
+
+      <section class="payroll-report-employee" aria-label="Informations du salarié">
+        <div class="payroll-report-photo" data-profile-field-slot="person_photo"></div>
+        <div class="payroll-report-identity">
+          <div data-profile-field-slot="employee"></div>
+          <div data-profile-field-slot="phone"></div>
+          <div data-profile-field-slot="period"></div>
+        </div>
+      </section>
+
+      <section class="payroll-report-amounts" aria-label="Détail de la rémunération">
+        <div data-profile-field-slot="order_count"></div>
+        <div data-profile-field-slot="orders_sum"></div>
+        <div data-profile-field-slot="bonuses"></div>
+        <div data-profile-field-slot="fines"></div>
+      </section>
+
+      <section class="payroll-report-total">
+        <div data-profile-field-slot="total"></div>
+        <div data-profile-field-slot="currency"></div>
+      </section>
+      <section class="document-preview-fields custom-profile-fields" data-profile-fields></section>
+    </div>
+  </article>
+</template>

@@ -1,0 +1,32 @@
+{
+  "templateName": "Billet d’événement",
+  "documentTitle": "Billet d’événement",
+  "theme": "festival",
+  "shape": "ticket",
+  "fields": [
+    { "id": "event", "label": "Nom de l’événement", "type": "text" },
+    { "id": "event_type", "label": "Type d’événement", "type": "text" },
+    { "id": "attendee", "label": "Nom du participant", "type": "text" },
+    { "id": "date_time", "label": "Date et heure", "type": "text" },
+    { "id": "venue", "label": "Lieu", "type": "text" },
+    { "id": "ticket_type", "label": "Catégorie du billet", "type": "text" },
+    { "id": "seat", "label": "Place", "type": "text" },
+    { "id": "ticket_number", "label": "Numéro du billet", "type": "text" },
+    { "id": "price", "label": "Prix", "type": "money" },
+    { "id": "currency", "label": "Devise", "type": "text" },
+    { "id": "access_notes", "label": "Informations complémentaires", "type": "text" }
+  ],
+  "values": {
+    "event": "",
+    "event_type": "",
+    "attendee": "",
+    "date_time": "",
+    "venue": "",
+    "ticket_type": "",
+    "seat": "",
+    "ticket_number": "",
+    "price": "",
+    "currency": "₽",
+    "access_notes": ""
+  }
+}

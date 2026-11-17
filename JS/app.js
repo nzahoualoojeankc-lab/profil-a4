@@ -1535,7 +1535,13 @@
       document.querySelector('.app-container').classList.remove('hidden');
       document.getElementById('accountStatusErrorPanel').hidden = true;
 
-      if (activeUserId === user.id && db) return;
+      if (activeUserId === user.id && db) {
+        const verificationSerial = new URLSearchParams(window.location.search).get('verify');
+        if (verificationSerial && window.AppVerification) {
+          window.AppVerification.openVerifier(verificationSerial);
+        }
+        return;
+      }
 
       if (realtimeChannel) {
         await supabaseClient.removeChannel(realtimeChannel);
@@ -1551,6 +1557,9 @@
           window.AppNotifications.initialize(supabaseClient, user.id, user.email),
           window.AppDocuments.initialize(supabaseClient, user.id)
         ]);
+        window.AppVerification.initialize(supabaseClient, user.id);
+        const verificationSerial = new URLSearchParams(window.location.search).get('verify');
+        if (verificationSerial) window.AppVerification.openVerifier(verificationSerial);
       } catch (error) {
         activeUserId = null;
         db = null;
@@ -1578,6 +1587,7 @@
     async function clearAuthenticatedUser() {
       if (window.AppNotifications) await window.AppNotifications.reset();
       if (window.AppDocuments) await window.AppDocuments.reset();
+      if (window.AppVerification) window.AppVerification.reset();
       if (realtimeChannel && supabaseClient) {
         await supabaseClient.removeChannel(realtimeChannel);
         realtimeChannel = null;
@@ -2199,7 +2209,7 @@
           : window.AppI18n.t('Страна');
         document.getElementById('documentArea').innerHTML = `
           <div class="a4-wrapper">
-            <div class="a4" id="page" style="font-family: ${escapeHtml(fontFamily)}">
+            <div class="a4" id="page" data-profile-id="${escapeHtml(id)}" style="font-family: ${escapeHtml(fontFamily)}">
               <div class="card top">
                 <div class="person-info">
                   <div class="name" contenteditable="true" id="personName" oninput="saveProfileDebounced()" style="font-size: ${appState.sizes.name}px">${escapeHtml(profile.name)}</div>
@@ -2242,6 +2252,14 @@
         // La fiche A4 vient d'être créée dans le DOM : on déverrouille les icônes.
         setA4UIReady(true);
         observeA4Layout();
+        if (window.AppVerification) {
+          try {
+            await window.AppVerification.attachToSheet(document.getElementById('page'), 'profile', String(id));
+          } catch (error) {
+            console.error('Erreur de chargement du QR de vérification :', error);
+            setSyncStatus('Impossible de charger le numéro de vérification : ' + error.message, true);
+          }
+        }
 
         document.getElementById('nameSize').value = appState.sizes.name;
         document.getElementById('nameSizeDisplay').textContent = appState.sizes.name + 'px';
@@ -2694,6 +2712,16 @@
       const urlParams = new URLSearchParams(window.location.search);
       changeLanguage(currentLanguage);
       initializeSupabaseAuth();
+    });
+
+    window.addEventListener('profile-verification-updated', event => {
+      if (event.detail?.sourceType === 'profile'
+          && String(appState.currentProfileId) === event.detail.sourceId) {
+        selectProfile(appState.currentProfileId).catch(error => {
+          console.error('Erreur d’actualisation de la fiche vérifiée :', error);
+          setSyncStatus('Impossible d’actualiser la fiche vérifiée : ' + error.message, true);
+        });
+      }
     });
 
     console.log('✅ Приложение запущено');
